@@ -1,0 +1,94 @@
+/* Minimal responsive styles for the quiz app */
+:root {
+  --bg: #f7f9fc;
+  --card: #ffffff;
+  --accent: #2b6cb0;
+  --muted: #6b7280;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family:
+    Inter,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif;
+  background: var(--bg);
+  color: #111;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 20px;
+}
+.card {
+  background: var(--card);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(14, 30, 37, 0.08);
+  padding: 20px;
+}
+h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+  color: var(--accent);
+}
+form .row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+label {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e6e9ef;
+  border-radius: 6px;
+  font-size: 14px;
+}
+textarea {
+  min-height: 100px;
+}
+.btn {
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn.secondary {
+  background: #e6eef8;
+  color: var(--accent);
+}
+.field {
+  flex: 1 1 240px;
+}
+.error-msg {
+  color: #b91c1c;
+  font-size: 13px;
+  margin-top: 6px;
+  display: none;
+}
+.question {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+@media (max-width: 600px) {
+  .row {
+    flex-direction: column;
+  }
+}
