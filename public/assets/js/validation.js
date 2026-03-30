@@ -68,6 +68,43 @@ document.addEventListener("DOMContentLoaded", function () {
         showError(roleGroup, "Select a role (teacher or student)");
         valid = false;
       }
+      // password checks
+      const password = registerForm.querySelector('input[name="password"]');
+      const passwordConfirm = registerForm.querySelector(
+        'input[name="password_confirm"]',
+      );
+      if (!password || !password.value || password.value.length < 6) {
+        showError(password || registerForm, "Password required (min 6 chars)");
+        valid = false;
+      }
+      if (
+        password &&
+        passwordConfirm &&
+        password.value !== passwordConfirm.value
+      ) {
+        showError(passwordConfirm, "Passwords do not match");
+        valid = false;
+      }
+      if (!valid) e.preventDefault();
+    });
+  }
+
+  // Login validation (id + password)
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", function (e) {
+      clearErrors(loginForm);
+      let valid = true;
+      const userId = loginForm.querySelector('input[name="user_id"]');
+      const password = loginForm.querySelector('input[name="password"]');
+      if (!userId || !userId.value || !userId.value.trim()) {
+        showError(userId, "ID is required");
+        valid = false;
+      }
+      if (!password || !password.value) {
+        showError(password, "Password is required");
+        valid = false;
+      }
       if (!valid) e.preventDefault();
     });
   }

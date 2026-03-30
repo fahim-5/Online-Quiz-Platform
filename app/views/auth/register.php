@@ -14,6 +14,17 @@
                 </div>
             </div>
             <div class="row">
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" placeholder="Choose a password" required>
+                </div>
+                <div class="field">
+                    <label for="password_confirm">Confirm Password</label>
+                    <input type="password" name="password_confirm" id="password_confirm" placeholder="Repeat password"
+                        required>
+                </div>
+            </div>
+            <div class="row">
                 <div class="field role-group">
                     <label>Role</label>
                     <div><label><input type="radio" name="role" value="student" checked> Student</label></div>
