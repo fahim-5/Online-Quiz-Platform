@@ -1,9 +1,15 @@
-.env
+# Dependencies
 node_modules/
-client/node_modules/
-server/node_modules/
+
+# Environment variables
+.env
+
+# Build outputs
 dist/
 build/
-logs/
+
+# Logs
 *.log
-/.vscode/
+
+# OS files
+.DS_Store
