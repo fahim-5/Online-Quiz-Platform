@@ -1,45 +1,85 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useState, useRef } from "react";
+import { Link, useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const location = useLocation()
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const { user, logout } = useAuth() || {};
+  const mobileMenuRef = useRef();
 
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'About', href: '/about' },
-  ]
+    { name: "Home", href: "/" },
+    { name: "About", href: "/about" },
+    { name: "Quizzes", href: "/dashboard" },
+  ];
 
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <div className="h-8 w-8 bg-primary-600 rounded-lg"></div>
-              <span className="ml-2 text-xl font-bold text-gray-900">Template</span>
+              <div className="h-8 w-8 bg-primary-600 rounded-lg shadow" />
+              <span className="ml-2 text-xl font-bold text-gray-900">
+                Quizly
+              </span>
             </Link>
+
+            {/* Search (desktop) */}
+            <div className="hidden lg:block">
+              <input
+                type="search"
+                placeholder="Search quizzes..."
+                className="border rounded-md px-3 py-1 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                aria-label="Search quizzes"
+              />
+            </div>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
                 className={`${
                   location.pathname === item.href
-                    ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-700 hover:text-primary-600'
+                    ? "text-primary-600 border-b-2 border-primary-600"
+                    : "text-gray-700 hover:text-primary-600"
                 } px-3 py-2 text-sm font-medium transition-colors duration-200`}
               >
                 {item.name}
               </Link>
             ))}
-            <button className="btn-primary text-sm">
-              Get Started
-            </button>
+
+            {/* Auth buttons */}
+            {!user ? (
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/login"
+                  className="text-sm px-3 py-2 text-gray-700 hover:text-primary-600"
+                >
+                  Login
+                </Link>
+                <Link to="/register" className="btn-primary text-sm">
+                  Sign up
+                </Link>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => alert("Open profile menu")}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100"
+                >
+                  <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-sm">
+                    {(user.name || "U")[0]}
+                  </div>
+                  <span className="text-sm">{user.name || "User"}</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -48,11 +88,26 @@ const Navbar = () => {
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
             >
-              <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6"
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
                 {isOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -61,7 +116,7 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden">
+          <div className="md:hidden" ref={mobileMenuRef}>
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
               {navigation.map((item) => (
                 <Link
@@ -70,22 +125,59 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                   className={`${
                     location.pathname === item.href
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600'
+                      ? "bg-primary-50 text-primary-600"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-primary-600"
                   } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 >
                   {item.name}
                 </Link>
               ))}
-              <button className="w-full mt-2 btn-primary text-sm">
-                Get Started
-              </button>
+
+              <div className="mt-2 border-t pt-2">
+                {!user ? (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="block px-3 py-2 text-base text-gray-700"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsOpen(false)}
+                      className="block mt-1 px-3 py-2 btn-primary text-base text-center"
+                    >
+                      Create account
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="block px-3 py-2 text-base text-gray-700"
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout && logout();
+                        setIsOpen(false);
+                      }}
+                      className="w-full mt-2 px-3 py-2 text-base text-left text-red-600"
+                    >
+                      Logout
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

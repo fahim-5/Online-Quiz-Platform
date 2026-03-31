@@ -1,11 +1,14 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import AppError from '../utils/appError.js';
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import AppError from "../utils/appError.js";
 
 // Generate JWT Token
+// Default JWT secret for development
+const defaultSecret = "dev-secret-change-me";
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '30d'
+  const secret = process.env.JWT_SECRET || defaultSecret;
+  return jwt.sign({ id }, secret, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "30d",
   });
 };
 
@@ -17,8 +20,8 @@ const sendTokenResponse = (user, statusCode, res) => {
     success: true,
     token,
     data: {
-      user
-    }
+      user,
+    },
   });
 };
 
@@ -27,19 +30,23 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { id, password, role, name } = req.body;
+
+    if (!id || !password)
+      return next(new AppError("Identifier and password are required", 400));
 
     // Check if user exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ identifier: id });
     if (existingUser) {
-      return next(new AppError('User already exists with this email', 400));
+      return next(new AppError("User already exists with this ID", 400));
     }
 
     // Create user
     const user = await User.create({
-      name,
-      email,
-      password
+      name: name || undefined,
+      identifier: id,
+      password,
+      role: role || "student",
     });
 
     sendTokenResponse(user, 201, res);
@@ -53,17 +60,17 @@ export const register = async (req, res, next) => {
 // @access  Public
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { id, password } = req.body;
 
-    // Check if email and password exist
-    if (!email || !password) {
-      return next(new AppError('Please provide email and password', 400));
+    // Check if id and password exist
+    if (!id || !password) {
+      return next(new AppError("Please provide id and password", 400));
     }
 
     // Check if user exists and password is correct
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ identifier: id }).select("+password");
     if (!user || !(await user.comparePassword(password))) {
-      return next(new AppError('Invalid email or password', 401));
+      return next(new AppError("Invalid ID or password", 401));
     }
 
     sendTokenResponse(user, 200, res);
@@ -78,12 +85,12 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
-    
+
     res.status(200).json({
       success: true,
       data: {
-        user
-      }
+        user,
+      },
     });
   } catch (error) {
     next(error);
