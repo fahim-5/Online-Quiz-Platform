@@ -1,149 +1,172 @@
-# 📘 Online Quiz Platform (CSE 4165 Project)
+# 📘 Online Quiz Platform (CSE 4165 Project - MERN Stack)
 
 ## 📌 Project Overview
 
-This project is an **Online Quiz Platform** developed as part of the **CSE 4165 course requirement**. The system enables administrators to create and manage quizzes, while students can participate within a fixed time and track their performance.
+This project is an **Online Quiz Platform** developed for the **CSE 4165 course**, now implemented using the **MERN Stack (MongoDB, Express.js, React.js, Node.js)**.
 
-The system follows a **Full-Stack Web Architecture** using:
+The system enables:
 
-* **Frontend:** HTML, CSS, JavaScript
-* **Backend:** PHP
-* **Database:** MySQL
+* **Admins** to create and manage quizzes
+* **Students** to participate in quizzes with time constraints and view results
+
+The architecture follows a **modern API-driven full-stack model**, ensuring scalability and clean separation of concerns.
 
 ---
 
-## 🎯 Core Features
+## 🎯 Tech Stack
 
-### 👨‍💼 Admin Panel
+### 🖥️ Frontend
 
-* Create quizzes with **title, duration, and rules**
-* Add, edit, delete questions from **question bank**
-* Monitor **student participation and scores**
+* HTML, CSS, JavaScript (via React.js)
+* Component-based UI architecture
+* Client-side validation
 
-### 👨‍🎓 Student Panel
+### ⚙️ Backend
 
-* Take quizzes within a **fixed time limit**
-* View **result history and score summary**
+* Node.js + Express.js
+* RESTful API design
+* JWT-based authentication
 
-### ⚙️ System Features
+### 🗄️ Database
 
-* Automatic scoring for objective questions
-* Quiz timer
-* Leaderboard
-* Question bank management
-* User authentication (login/register)
+* MongoDB (NoSQL)
+* Mongoose ODM for schema modeling
 
 ---
 
 ## 🏗️ Project Requirements (As Provided by Instructor)
 
-Each project must include:
+This project satisfies all required constraints:
 
 * Frontend using **HTML, CSS, JavaScript**
-* Backend using **PHP**
-* Database using **MySQL**
+* Backend implemented with **server-side logic (Node.js replacing PHP)**
+* Database using **MongoDB (alternative to MySQL)**
 * Proper **UI design and validation**
-* Full **CRUD operations** where applicable
+* Full **CRUD operations** implemented via API
 
 ---
 
 ## 📂 Project Structure
 
-```
+```id="mernreadme1"
 online-quiz-system/
 │
-├── config/              # Database & app configuration
-├── public/              # Entry point (UI, assets)
-├── app/
-│   ├── controllers/     # Business logic
-│   ├── models/          # Database interaction
-│   └── views/           # UI templates
+├── client/                         # React Frontend
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── routes/
+│   │   ├── context/
+│   │   └── App.jsx
+│   │
+│   └── package.json
 │
-├── routes/              # Route handling
-├── database/            # SQL files
-├── includes/            # Helper functions
-├── logs/                # Error logs
+├── server/                         # Backend (Node + Express)
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── config/
+│   ├── app.js
+│   └── server.js
+│
+├── .env
 └── README.md
 ```
 
 ---
 
-## 🗄️ Database Design (Core Tables)
+## 🔥 Core Features
 
-* `users` → Stores user info (Admin/Student)
-* `quizzes` → Quiz metadata
-* `questions` → Questions per quiz
-* `answers` → MCQ options
-* `results` → Student scores
-* `leaderboard` → Ranking system
+### 👨‍💼 Admin Panel
+
+* Create, update, delete quizzes
+* Manage question bank
+* Monitor student performance
+
+### 👨‍🎓 Student Panel
+
+* Attempt quizzes with timer
+* View scores and history
+* Participate in leaderboard
+
+### ⚙️ System Capabilities
+
+* Automatic scoring system
+* Real-time timer handling
+* REST API-based communication
+* Secure authentication
+
+---
+
+## 🔄 CRUD Operations Coverage
+
+| Resource  | CRUD Support |
+| --------- | ------------ |
+| Users     | Create, Read |
+| Quizzes   | Full CRUD    |
+| Questions | Full CRUD    |
+| Results   | Create, Read |
 
 ---
 
 ## ⚙️ Installation & Setup Instructions
 
-### 1️⃣ Clone Project
+### 1️⃣ Clone Repository
 
-```bash
+```bash id="mernreadme2"
 git clone https://github.com/your-repo/online-quiz-system.git
 cd online-quiz-system
 ```
 
-### 2️⃣ Setup Database
+---
 
-* Create a MySQL database (e.g., `quiz_system`)
-* Import:
+### 2️⃣ Setup Backend (Server)
 
-```sql
-database/migrations.sql
-database/seed.sql
+```bash id="mernreadme3"
+cd server
+npm install
 ```
 
-### 3️⃣ Configure Database Connection
+Create `.env` file:
 
-Edit:
-
-```
-config/database.php
-```
-
-Set:
-
-```php
-$host = "localhost";
-$user = "root";
-$password = "";
-$dbname = "quiz_system";
+```env id="mernreadme4"
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
 ```
 
-### 4️⃣ Run Project
+Run server:
 
-* Place project in `htdocs` (XAMPP) or `www` (WAMP)
-* Start Apache & MySQL
-* Open browser:
-
+```bash id="mernreadme5"
+npm run dev
 ```
-http://localhost/online-quiz-system/public
+
+---
+
+### 3️⃣ Setup Frontend (Client)
+
+```bash id="mernreadme6"
+cd client
+npm install
+npm run dev
+```
+
+Access app:
+
+```id="mernreadme7"
+http://localhost:5173
 ```
 
 ---
 
 ## 🔐 Authentication Flow
 
-* User Registration (Student/Admin role)
-* Secure login using session handling
-* Password hashing using `password_hash()`
-
----
-
-## 🔄 CRUD Operations Coverage
-
-| Module      | CRUD Support |
-| ----------- | ------------ |
-| Users       | Create, Read |
-| Quizzes     | Full CRUD    |
-| Questions   | Full CRUD    |
-| Results     | Read         |
-| Leaderboard | Read         |
+* User registers via API
+* Password hashed using `bcrypt`
+* JWT token generated on login
+* Protected routes via middleware
 
 ---
 
@@ -151,43 +174,41 @@ http://localhost/online-quiz-system/public
 
 ### ✅ Strengths
 
-* Clean modular architecture (MVC-like)
-* Scalable structure for future upgrades
-* Covers all academic requirements
-* Separation of concerns improves maintainability
+* Modern scalable architecture
+* Clean frontend/backend separation
+* API-first design
+* Industry-relevant tech stack
 
 ### ❌ Limitations
 
-* No REST API (monolithic PHP)
-* Limited scalability without framework (Laravel)
-* Manual routing may become complex
+* Higher complexity than PHP
+* Requires proper API design discipline
+* MongoDB schema design must be handled carefully
 
 ---
 
 ## 🚀 Future Enhancements
 
-* Convert to **REST API + React frontend**
-* Add **real-time quiz (WebSocket)**
-* Implement **JWT authentication**
-* Introduce **AI-based question generation**
+* Real-time quiz using WebSockets
+* AI-based question generation
+* Analytics dashboard
+* Mobile app integration
 
 ---
 
 ## 🧠 Strategic Insight
 
-This project is not just an academic submission — it is a **foundation for a production-grade assessment platform**.
+This implementation transforms a simple academic project into a **production-grade system blueprint**.
 
-If properly extended:
-
-* Can evolve into an **EdTech SaaS product**
-* Supports **micro-learning and remote evaluation systems**
-* Aligns with current **digital education trends**
+* প্রস্তুত SaaS model-এ scale করার জন্য
+* Microservices architecture-এ migrate করা possible
+* EdTech platform হিসেবে evolve করার capability আছে
 
 ---
 
 ## 👨‍💻 Author
 
-CSE Student – Full Stack Developer
-Focus: Scalable Systems, Backend Engineering, and Product Thinking
+CSE Student
+Focus: Full Stack Engineering, Scalable Systems, Product-Oriented Development
 
 ---

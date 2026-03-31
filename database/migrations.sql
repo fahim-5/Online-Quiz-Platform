@@ -1,2 +1,0 @@
--- migrations.sql
--- TODO: add CREATE TABLE statements for users, quizzes, questions, results
