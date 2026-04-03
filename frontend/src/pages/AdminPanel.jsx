@@ -79,6 +79,10 @@ export default function AdminPanel() {
     navigate(`/quiz/${quiz._id || quiz.id}`);
   };
 
+  const handleManageQuiz = (quiz) => {
+    navigate(`/teacher/quiz/${quiz._id || quiz.id}`);
+  };
+
   const handleCreateQuiz = async (e) => {
     e && e.preventDefault();
     try {
@@ -277,6 +281,7 @@ export default function AdminPanel() {
               quizzes={quizzes.slice(0, 10)}
               onEdit={handleEditQuiz}
               onDelete={handleDeleteQuiz}
+              onManage={handleManageQuiz}
             />
           </div>
           <div>

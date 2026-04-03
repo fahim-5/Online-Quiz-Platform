@@ -8,6 +8,7 @@ import Dashboard from "../pages/Dashboard";
 import TakeQuiz from "../pages/TakeQuiz";
 import Result from "../pages/Result";
 import AdminPanel from "../pages/AdminPanel";
+import ManageQuestions from "../pages/ManageQuestions";
 import ResultsHistory from "../pages/ResultsHistory";
 
 export default function AppRoutes() {
@@ -22,6 +23,7 @@ export default function AppRoutes() {
       <Route path="/result" element={<Result />} />
       <Route path="/results" element={<ResultsHistory />} />
       <Route path="/teacher" element={<AdminPanel />} />
+      <Route path="/teacher/quiz/:id" element={<ManageQuestions />} />
     </Routes>
   );
 }

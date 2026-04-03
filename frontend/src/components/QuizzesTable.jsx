@@ -4,6 +4,7 @@ export default function QuizzesTable({
   quizzes = [],
   onEdit = () => {},
   onDelete = () => {},
+  onManage = () => {},
 }) {
   return (
     <div>
@@ -32,6 +33,12 @@ export default function QuizzesTable({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  className="text-sm text-green-600"
+                  onClick={() => onManage(q)}
+                >
+                  Manage
+                </button>
                 <button
                   className="text-sm text-blue-600"
                   onClick={() => onEdit(q)}
