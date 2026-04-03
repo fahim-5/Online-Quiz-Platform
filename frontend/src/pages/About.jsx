@@ -17,7 +17,7 @@ const About = () => {
             </h2>
             <ul className="space-y-3">
               <li>
-                👨‍💼 Admins: create, edit, and delete quizzes and questions.
+                👨‍💼 Teachers: create, edit, and delete quizzes and questions.
               </li>
               <li>👨‍🎓 Students: take timed quizzes and view past results.</li>
               <li>⏱️ Real-time timers to enforce quiz duration.</li>

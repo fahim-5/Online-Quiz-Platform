@@ -121,7 +121,7 @@
     const submit = await res.json();
     log("submitResult", submit);
 
-    // Leaderboard (admin)
+    // Leaderboard (teacher)
     res = await fetch(base + `/results/teacher/leaderboard/${qid}`, {
       headers: { Authorization: "Bearer " + adminToken },
     });

@@ -36,17 +36,9 @@ export const protect = async (req, res, next) => {
 };
 
 export const authorize = (...roles) => {
-  // Expand roles: treat `admin` as including `teacher` for this platform
-  const allowed = new Set();
-  roles.forEach((r) => {
-    allowed.add(r);
-    if (r === "admin") {
-      allowed.add("teacher");
-    }
-  });
-
+  // Simple role check — platform uses `student` and `teacher` roles
   return (req, res, next) => {
-    if (!allowed.has(req.user.role)) {
+    if (!roles.includes(req.user.role)) {
       return next(new AppError("Not authorized to access this route", 403));
     }
     next();

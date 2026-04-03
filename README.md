@@ -6,7 +6,7 @@ This project is an **Online Quiz Platform** developed for the **CSE 4165 course*
 
 The system enables:
 
-- **Admins** to create and manage quizzes
+- **Teachers** to create and manage quizzes
 - **Students** to participate in quizzes with time constraints and view results
 
 The architecture follows a **modern API-driven full-stack model**, ensuring scalability and clean separation of concerns.
@@ -79,7 +79,7 @@ online-quiz-system/
 
 ## 🔥 Core Features
 
-### 👨‍💼 Admin Panel
+### 👨‍💼 Teacher Panel
 
 - Create, update, delete quizzes
 - Manage question bank

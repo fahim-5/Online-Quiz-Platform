@@ -32,10 +32,10 @@ const Home = () => {
           },
         ]);
       } finally {
-         setLoading(false);
+        setLoading(false);
       }
     };
- 
+
     fetchQuizzes();
   }, []);
 
@@ -67,10 +67,10 @@ const Home = () => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Teacher Dashboard</h2>
           <div className="flex gap-2">
-            <Link to="/admin" className="btn-primary">
+            <Link to="/teacher" className="btn-primary">
               Manage Quizzes
             </Link>
-            <Link to="/admin" className="btn-secondary">
+            <Link to="/teacher" className="btn-secondary">
               Create Quiz
             </Link>
           </div>
@@ -105,7 +105,7 @@ const Home = () => {
                   <h4 className="font-semibold">{q.title}</h4>
                   <p className="text-sm text-gray-600">{q.description}</p>
                   <div className="mt-2 flex gap-2">
-                    <Link to={`/admin`} className="btn-secondary text-sm">
+                    <Link to={`/teacher`} className="btn-secondary text-sm">
                       Edit
                     </Link>
                     <button className="btn-primary text-sm">

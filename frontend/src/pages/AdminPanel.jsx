@@ -68,7 +68,7 @@ export default function AdminPanel() {
         setStats((s) => ({ ...s, results: count }));
       }
     } catch (err) {
-      setError(err.message || "Failed to fetch admin data");
+      setError(err.message || "Failed to fetch teacher data");
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,8 @@ export default function AdminPanel() {
   };
 
   const handlePromoteUser = async (userObj) => {
-    if (!confirm(`Promote ${userObj.email || userObj.name} to teacher?`)) return;
+    if (!confirm(`Promote ${userObj.email || userObj.name} to teacher?`))
+      return;
     try {
       setLoading(true);
       await api.put(`/users/${userObj._id || userObj.id}`, { role: "teacher" });

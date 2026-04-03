@@ -6,7 +6,7 @@ This document describes the MongoDB schema design for the Online Quiz Platform. 
 
 ## Design Goals
 
-- Support admin-created quizzes (title, duration, rules).
+- Support teacher-created quizzes (title, duration, rules).
 - Keep a question bank (add/edit/delete questions per quiz).
 - Allow students to take quizzes with a timer and auto-submit.
 - Store results with automatic scoring for objective questions.
@@ -27,7 +27,7 @@ This document describes the MongoDB schema design for the Online Quiz Platform. 
 
 ## `users` Collection
 
-Purpose: Store accounts for students, teachers, and admins.
+Purpose: Store accounts for students and teachers.
 
 Fields:
 
@@ -36,7 +36,7 @@ Fields:
 - `email` (string, unique, indexed)
 - `identifier` (string) — optional roll/student/teacher ID
 - `passwordHash` (string)
-- `role` (string) — one of `student|teacher|admin` (index)
+- `role` (string) — one of `student|teacher` (index)
 - `active` (boolean, default true)
 - `createdAt` (date)
 - `lastLogin` (date)
@@ -45,7 +45,7 @@ Indexes:
 
 - `email` unique
 - `identifier` unique (if used)
-- `role` for admin queries
+- `role` for teacher queries
 
 Sample document:
 
@@ -56,7 +56,7 @@ Sample document:
   "email": "fahim@example.com",
   "identifier": "2024001",
   "passwordHash": "$2b$...",
-  "role": "admin",
+  "role": "teacher",
   "active": true,
   "createdAt": "2026-04-03T..."
 }
@@ -181,8 +181,8 @@ Indexes:
 
 This document specifies a production-ready MongoDB design tailored to the faculty requirements.
 It includes collection schemas, Mongoose snippets, indexes, sample API payloads, and common queries for
-the features you listed: admin quiz creation (title, duration, rules), question bank CRUD, timed quiz-taking,
-automatic scoring, result history, leaderboard, and admin monitoring.
+the features you listed: teacher quiz creation (title, duration, rules), question bank CRUD, timed quiz-taking,
+automatic scoring, result history, leaderboard, and teacher monitoring.
 
 Table of contents
 
@@ -200,12 +200,12 @@ Table of contents
 
 Functional requirements recap (from faculty):
 
-1. Admin can create quizzes with title, duration (time limit), and rules.
+1. Teachers can create quizzes with title, duration (time limit), and rules.
 2. Add, edit, and delete questions from a question bank.
 3. Students take quizzes within a fixed time limit (timer enforced client-side and validated server-side).
 4. Automatic scoring for objective questions (MCQ/multiple choice).
 5. Students can view result history and score summaries.
-6. Admin can monitor participation and score records (leaderboards, aggregates).
+6. Teachers can monitor participation and score records (leaderboards, aggregates).
 
 Design principles:
 
@@ -226,7 +226,7 @@ Design principles:
   - `email`: String (unique, indexed)
   - `identifier`: String (optional unique student/teacher id)
   - `passwordHash`: String
-  - `role`: String enum `['student','teacher','admin']` (indexed)
+  - `role`: String enum `['student','teacher']` (indexed)
   - `active`: Boolean (default true)
   - `createdAt`, `updatedAt`: Date
   - `lastLogin`: Date
@@ -278,12 +278,12 @@ Design principles:
 
 5. `analytics` (optional)
 
-- Purpose: pre-aggregated per-quiz metrics to support admin dashboards without heavy realtime aggregation.
+- Purpose: pre-aggregated per-quiz metrics to support teacher dashboards without heavy realtime aggregation.
 - Fields: `{ quiz, date, attempts, avgScore, passRate }`
 
 6. `audit_logs` (optional)
 
-- Purpose: record admin actions for compliance (create/update/delete quizzes/questions)
+- Purpose: record teacher actions for compliance (create/update/delete quizzes/questions)
 - Fields: `{ actor, action, targetCollection, targetId, diff, timestamp }`
 
 ---
@@ -301,7 +301,7 @@ const UserSchema = new mongoose.Schema(
     passwordHash: String,
     role: {
       type: String,
-      enum: ["student", "teacher", "admin"],
+      enum: ["student", "teacher"],
       default: "student",
       index: true,
     },
@@ -384,7 +384,7 @@ Notes:
 
 ## Example API payloads
 
-- Create quiz (admin):
+- Create quiz (teacher):
 
 ```json
 POST /api/quizzes
@@ -396,7 +396,7 @@ POST /api/quizzes
 }
 ```
 
-- Add question (admin):
+- Add question (teacher):
 
 ```json
 POST /api/questions
@@ -489,7 +489,7 @@ db.results.aggregate([
 
 ## Security & validation
 
-- Always authenticate protected endpoints with JWT and authorize admin-only routes server-side.
+- Always authenticate protected endpoints with JWT and authorize teacher-only routes server-side.
 - Never return `correctIndex` in question list endpoints; implement server-side `.select('-correctIndex')` or transform before response.
 - Sanitize all inputs (server uses `express-mongo-sanitize`).
 - Validate payloads (use `express-validator` or `Joi`) and enforce types (e.g., `timeLimit` numeric).

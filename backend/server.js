@@ -206,7 +206,7 @@ const startServer = async () => {
               `   ${colors.blue}POST /api/posts${colors.reset}         - Create post (Protected)`,
             );
             console.log(
-              `   ${colors.yellow}GET  /api/users${colors.reset}         - Get all users (Admin only)`,
+              `   ${colors.yellow}GET  /api/users${colors.reset}         - Get all users (Teacher only)`,
             );
             console.log(
               `\n${colors.green}🎯 Use Ctrl+C to stop the server${colors.reset}\n`,

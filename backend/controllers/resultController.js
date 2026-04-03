@@ -222,7 +222,7 @@ export default {
   getMySummary,
 };
 
-// Admin analytics
+// Teacher analytics
 // Leaderboard for a quiz: top N users by best score
 const leaderboardForQuiz = async (req, res, next) => {
   try {
@@ -403,7 +403,7 @@ const participationSummary = async (req, res, next) => {
   }
 };
 
-// Export leaderboard CSV for a quiz (admin)
+// Export leaderboard CSV for a quiz (teacher)
 const exportLeaderboardCSV = async (req, res, next) => {
   try {
     const quizId = req.params.quizId;
@@ -484,7 +484,7 @@ const exportLeaderboardCSV = async (req, res, next) => {
   }
 };
 
-// Export functions (named exports) — include core and admin helpers
+// Export functions (named exports) — include core and teacher helpers
 export {
   startResult,
   submitResult,
