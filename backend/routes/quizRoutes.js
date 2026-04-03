@@ -1,11 +1,14 @@
-const express = require("express");
+import express from "express";
+import quizController from "../controllers/quizController.js";
+import { protect, authorize } from "../middleware/auth.js";
+
 const router = express.Router();
-const quizController = require("../controllers/quizController");
-const auth = require("../middleware/auth.js");
 
 router.get("/", quizController.getQuizzes);
-router.post("/", auth.protect, quizController.createQuiz);
+router.post("/", protect, authorize("admin"), quizController.createQuiz);
 router.get("/:id", quizController.getQuiz);
-router.delete("/:id", auth.protect, quizController.deleteQuiz);
+router.delete("/:id", protect, authorize("admin"), quizController.deleteQuiz);
 
-module.exports = router;
+router.post("/:id/undo", protect, authorize("admin"), quizController.undoQuiz);
+
+export default router;

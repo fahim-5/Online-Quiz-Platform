@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const ResultSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -11,7 +11,19 @@ const ResultSchema = new mongoose.Schema({
       answerIndex: Number,
     },
   ],
+  // When the user started the quiz (for enforcing time limits)
+  startedAt: { type: Date },
+  // status: 'in-progress' when started, 'completed' after submission
+  status: {
+    type: String,
+    enum: ["in-progress", "completed"],
+    default: "completed",
+  },
+  endedAt: { type: Date },
+  duration: { type: Number },
   takenAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Result", ResultSchema);
+const Result = mongoose.model("Result", ResultSchema);
+
+export default Result;

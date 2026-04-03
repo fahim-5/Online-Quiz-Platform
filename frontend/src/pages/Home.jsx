@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import QuizCard from "../components/QuizCard";
 import api from "../services/api";
@@ -7,6 +7,7 @@ import api from "../services/api";
 const Home = () => {
   const auth = useAuth();
   const user = auth?.user || null;
+  const navigate = useNavigate();
 
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,10 +32,10 @@ const Home = () => {
           },
         ]);
       } finally {
-        setLoading(false);
+         setLoading(false);
       }
     };
-
+ 
     fetchQuizzes();
   }, []);
 
@@ -138,7 +139,7 @@ const Home = () => {
               key={q._id}
               title={q.title}
               description={q.description}
-              onStart={() => (window.location.href = `/quiz/${q._id}`)}
+              onStart={() => navigate(`/quiz/${q._id}`)}
             />
           ))
         )}

@@ -58,10 +58,10 @@ const Footer = () => {
                 <ul className="mt-4 space-y-4">
                   <li>
                     <Link
-                      to="/admin"
+                      to="/teacher"
                       className="text-base text-gray-300 hover:text-white"
                     >
-                      Admin Panel
+                      Teacher Panel
                     </Link>
                   </li>
                   <li>

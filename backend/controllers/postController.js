@@ -1,5 +1,5 @@
-import Post from '../models/Post.js';
-import AppError from '../utils/appError.js';
+import Post from "../models/Post.js";
+import AppError from "../utils/appError.js";
 
 // @desc    Get all posts
 // @route   GET /api/posts
@@ -7,13 +7,13 @@ import AppError from '../utils/appError.js';
 export const getPosts = async (req, res, next) => {
   try {
     const posts = await Post.find({ isPublished: true })
-      .populate('author', 'name email')
+      .populate("author", "name email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       count: posts.length,
-      data: posts
+      data: posts,
     });
   } catch (error) {
     next(error);
@@ -25,11 +25,13 @@ export const getPosts = async (req, res, next) => {
 // @access  Public
 export const getPost = async (req, res, next) => {
   try {
-    const post = await Post.findById(req.params.id)
-      .populate('author', 'name email');
+    const post = await Post.findById(req.params.id).populate(
+      "author",
+      "name email",
+    );
 
     if (!post) {
-      return next(new AppError('Post not found', 404));
+      return next(new AppError("Post not found", 404));
     }
 
     // Increment views
@@ -38,7 +40,7 @@ export const getPost = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: post
+      data: post,
     });
   } catch (error) {
     next(error);
@@ -55,11 +57,11 @@ export const createPost = async (req, res, next) => {
 
     const post = await Post.create(req.body);
 
-    await post.populate('author', 'name email');
+    await post.populate("author", "name email");
 
     res.status(201).json({
       success: true,
-      data: post
+      data: post,
     });
   } catch (error) {
     next(error);
@@ -74,22 +76,22 @@ export const updatePost = async (req, res, next) => {
     let post = await Post.findById(req.params.id);
 
     if (!post) {
-      return next(new AppError('Post not found', 404));
+      return next(new AppError("Post not found", 404));
     }
 
-    // Check if user owns the post or is admin
-    if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
-      return next(new AppError('Not authorized to update this post', 403));
+    // Check if user owns the post or is teacher
+    if (post.author.toString() !== req.user.id && req.user.role !== "teacher") {
+      return next(new AppError("Not authorized to update this post", 403));
     }
 
     post = await Post.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
-      runValidators: true
-    }).populate('author', 'name email');
+      runValidators: true,
+    }).populate("author", "name email");
 
     res.status(200).json({
       success: true,
-      data: post
+      data: post,
     });
   } catch (error) {
     next(error);
@@ -104,19 +106,19 @@ export const deletePost = async (req, res, next) => {
     const post = await Post.findById(req.params.id);
 
     if (!post) {
-      return next(new AppError('Post not found', 404));
+      return next(new AppError("Post not found", 404));
     }
 
-    // Check if user owns the post or is admin
-    if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
-      return next(new AppError('Not authorized to delete this post', 403));
+    // Check if user owns the post or is teacher
+    if (post.author.toString() !== req.user.id && req.user.role !== "teacher") {
+      return next(new AppError("Not authorized to delete this post", 403));
     }
 
     await Post.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: 'Post deleted successfully'
+      message: "Post deleted successfully",
     });
   } catch (error) {
     next(error);

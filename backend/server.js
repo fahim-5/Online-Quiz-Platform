@@ -31,12 +31,26 @@ const colors = {
 // Security Middleware
 app.use(helmet());
 app.use(mongoSanitize());
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  }),
-);
+// CORS: allow development origins (localhost and 127.0.0.1) and echo the origin for credentialed requests
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const allowedOrigins = new Set([
+  CLIENT_URL,
+  CLIENT_URL.replace("localhost", "127.0.0.1"),
+]);
+const corsOptions = {
+  origin: (origin, cb) => {
+    // allow non-browser tools (no origin)
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.has(origin)) return cb(null, true);
+    // don't throw an error here — return false so CORS middleware simply doesn't set headers
+    return cb(null, false);
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+// Enable preflight for all routes with same options
+app.options("*", cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -134,61 +148,91 @@ const connectDB = async () => {
   }
 };
 
-// Start server
+// Start server with port fallback: try configured PORT, then next ports if in use
 const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(PORT, () => {
-      console.log(
-        `\n${colors.green}🚀 ${colors.bright}Server Started Successfully!${colors.reset}`,
-      );
-      console.log(
-        `   ${colors.cyan}📍 Port:${colors.reset} ${colors.yellow}${PORT}${colors.reset}`,
-      );
-      console.log(
-        `   ${colors.cyan}🌍 Environment:${colors.reset} ${colors.yellow}${process.env.NODE_ENV || "development"}${colors.reset}`,
-      );
-      console.log(
-        `   ${colors.cyan}🔗 Local URL:${colors.reset} ${colors.blue}http://localhost:${PORT}${colors.reset}`,
-      );
-      console.log(
-        `   ${colors.cyan}📚 API Base:${colors.reset} ${colors.blue}http://localhost:${PORT}/api${colors.reset}`,
-      );
-      console.log(
-        `   ${colors.green}✅ Server is ready to accept requests!${colors.reset}`,
-      );
+    const basePort = Number(process.env.PORT) || PORT || 5000;
+    const maxAttempts = 10;
+    let currentPort = basePort;
 
-      // Display available routes
-      console.log(`\n${colors.magenta}📋 Available Routes:${colors.reset}`);
-      console.log(
-        `   ${colors.cyan}GET  /${colors.reset}          - Welcome message`,
-      );
-      console.log(
-        `   ${colors.cyan}GET  /health${colors.reset}     - Health check`,
-      );
-      console.log(
-        `   ${colors.green}POST /api/auth/register${colors.reset} - User registration`,
-      );
-      console.log(
-        `   ${colors.green}POST /api/auth/login${colors.reset}    - User login`,
-      );
-      console.log(
-        `   ${colors.blue}GET  /api/auth/me${colors.reset}       - Get current user (Protected)`,
-      );
-      console.log(
-        `   ${colors.blue}GET  /api/posts${colors.reset}         - Get all posts`,
-      );
-      console.log(
-        `   ${colors.blue}POST /api/posts${colors.reset}         - Create post (Protected)`,
-      );
-      console.log(
-        `   ${colors.yellow}GET  /api/users${colors.reset}         - Get all users (Admin only)`,
-      );
-      console.log(
-        `\n${colors.green}🎯 Use Ctrl+C to stop the server${colors.reset}\n`,
-      );
-    });
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        await new Promise((resolve, reject) => {
+          const server = app.listen(currentPort, () => {
+            console.log(
+              `\n${colors.green}🚀 ${colors.bright}Server Started Successfully!${colors.reset}`,
+            );
+            console.log(
+              `   ${colors.cyan}📍 Port:${colors.reset} ${colors.yellow}${currentPort}${colors.reset}`,
+            );
+            console.log(
+              `   ${colors.cyan}🌍 Environment:${colors.reset} ${colors.yellow}${process.env.NODE_ENV || "development"}${colors.reset}`,
+            );
+            console.log(
+              `   ${colors.cyan}🔗 Local URL:${colors.reset} ${colors.blue}http://localhost:${currentPort}${colors.reset}`,
+            );
+            console.log(
+              `   ${colors.cyan}📚 API Base:${colors.reset} ${colors.blue}http://localhost:${currentPort}/api${colors.reset}`,
+            );
+            console.log(
+              `   ${colors.green}✅ Server is ready to accept requests!${colors.reset}`,
+            );
+
+            // Display available routes
+            console.log(
+              `\n${colors.magenta}📋 Available Routes:${colors.reset}`,
+            );
+            console.log(
+              `   ${colors.cyan}GET  /${colors.reset}          - Welcome message`,
+            );
+            console.log(
+              `   ${colors.cyan}GET  /health${colors.reset}     - Health check`,
+            );
+            console.log(
+              `   ${colors.green}POST /api/auth/register${colors.reset} - User registration`,
+            );
+            console.log(
+              `   ${colors.green}POST /api/auth/login${colors.reset}    - User login`,
+            );
+            console.log(
+              `   ${colors.blue}GET  /api/auth/me${colors.reset}       - Get current user (Protected)`,
+            );
+            console.log(
+              `   ${colors.blue}GET  /api/posts${colors.reset}         - Get all posts`,
+            );
+            console.log(
+              `   ${colors.blue}POST /api/posts${colors.reset}         - Create post (Protected)`,
+            );
+            console.log(
+              `   ${colors.yellow}GET  /api/users${colors.reset}         - Get all users (Admin only)`,
+            );
+            console.log(
+              `\n${colors.green}🎯 Use Ctrl+C to stop the server${colors.reset}\n`,
+            );
+
+            resolve();
+          });
+
+          server.on("error", (err) => {
+            reject(err);
+          });
+        });
+
+        // successful listen
+        break;
+      } catch (err) {
+        if (err && err.code === "EADDRINUSE") {
+          console.log(
+            `${colors.yellow}Port ${currentPort} in use, trying ${currentPort + 1}${colors.reset}`,
+          );
+          currentPort += 1;
+          continue;
+        }
+        throw err;
+      }
+    }
   } catch (error) {
     console.log(
       `\n${colors.red}💥 ${colors.bright}Failed to start server!${colors.reset}`,

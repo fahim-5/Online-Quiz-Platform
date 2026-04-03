@@ -6,8 +6,8 @@ This project is an **Online Quiz Platform** developed for the **CSE 4165 course*
 
 The system enables:
 
-* **Admins** to create and manage quizzes
-* **Students** to participate in quizzes with time constraints and view results
+- **Admins** to create and manage quizzes
+- **Students** to participate in quizzes with time constraints and view results
 
 The architecture follows a **modern API-driven full-stack model**, ensuring scalability and clean separation of concerns.
 
@@ -17,20 +17,20 @@ The architecture follows a **modern API-driven full-stack model**, ensuring scal
 
 ### 🖥️ Frontend
 
-* HTML, CSS, JavaScript (via React.js)
-* Component-based UI architecture
-* Client-side validation
+- HTML, CSS, JavaScript (via React.js)
+- Component-based UI architecture
+- Client-side validation
 
 ### ⚙️ Backend
 
-* Node.js + Express.js
-* RESTful API design
-* JWT-based authentication
+- Node.js + Express.js
+- RESTful API design
+- JWT-based authentication
 
 ### 🗄️ Database
 
-* MongoDB (NoSQL)
-* Mongoose ODM for schema modeling
+- MongoDB (NoSQL)
+- Mongoose ODM for schema modeling
 
 ---
 
@@ -38,11 +38,11 @@ The architecture follows a **modern API-driven full-stack model**, ensuring scal
 
 This project satisfies all required constraints:
 
-* Frontend using **HTML, CSS, JavaScript**
-* Backend implemented with **server-side logic (Node.js replacing PHP)**
-* Database using **MongoDB (alternative to MySQL)**
-* Proper **UI design and validation**
-* Full **CRUD operations** implemented via API
+- Frontend using **HTML, CSS, JavaScript**
+- Backend implemented with **server-side logic (Node.js replacing PHP)**
+- Database using **MongoDB (alternative to MySQL)**
+- Proper **UI design and validation**
+- Full **CRUD operations** implemented via API
 
 ---
 
@@ -51,7 +51,7 @@ This project satisfies all required constraints:
 ```id="mernreadme1"
 online-quiz-system/
 │
-├── client/                         # React Frontend
+├── frontend/                       # React Frontend
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
@@ -62,7 +62,7 @@ online-quiz-system/
 │   │
 │   └── package.json
 │
-├── server/                         # Backend (Node + Express)
+├── backend/                        # Backend (Node + Express)
 │   ├── controllers/
 │   ├── models/
 │   ├── routes/
@@ -81,22 +81,22 @@ online-quiz-system/
 
 ### 👨‍💼 Admin Panel
 
-* Create, update, delete quizzes
-* Manage question bank
-* Monitor student performance
+- Create, update, delete quizzes
+- Manage question bank
+- Monitor student performance
 
 ### 👨‍🎓 Student Panel
 
-* Attempt quizzes with timer
-* View scores and history
-* Participate in leaderboard
+- Attempt quizzes with timer
+- View scores and history
+- Participate in leaderboard
 
 ### ⚙️ System Capabilities
 
-* Automatic scoring system
-* Real-time timer handling
-* REST API-based communication
-* Secure authentication
+- Automatic scoring system
+- Real-time timer handling
+- REST API-based communication
+- Secure authentication
 
 ---
 
@@ -125,11 +125,11 @@ cd online-quiz-system
 ### 2️⃣ Setup Backend (Server)
 
 ```bash id="mernreadme3"
-cd server
+cd backend
 npm install
 ```
 
-Create `.env` file:
+Create `.env` file in the `backend` folder (or project root):
 
 ```env id="mernreadme4"
 PORT=5000
@@ -137,9 +137,10 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 ```
 
-Run server:
+Run server from the `backend` folder:
 
 ```bash id="mernreadme5"
+cd backend
 npm run dev
 ```
 
@@ -148,12 +149,12 @@ npm run dev
 ### 3️⃣ Setup Frontend (Client)
 
 ```bash id="mernreadme6"
-cd client
+cd frontend
 npm install
 npm run dev
 ```
 
-Access app:
+Access app (Vite default):
 
 ```id="mernreadme7"
 http://localhost:5173
@@ -163,10 +164,10 @@ http://localhost:5173
 
 ## 🔐 Authentication Flow
 
-* User registers via API
-* Password hashed using `bcrypt`
-* JWT token generated on login
-* Protected routes via middleware
+- User registers via API
+- Password hashed using `bcrypt`
+- JWT token generated on login
+- Protected routes via middleware
 
 ---
 
@@ -174,25 +175,25 @@ http://localhost:5173
 
 ### ✅ Strengths
 
-* Modern scalable architecture
-* Clean frontend/backend separation
-* API-first design
-* Industry-relevant tech stack
+- Modern scalable architecture
+- Clean frontend/backend separation
+- API-first design
+- Industry-relevant tech stack
 
 ### ❌ Limitations
 
-* Higher complexity than PHP
-* Requires proper API design discipline
-* MongoDB schema design must be handled carefully
+- Higher complexity than PHP
+- Requires proper API design discipline
+- MongoDB schema design must be handled carefully
 
 ---
 
 ## 🚀 Future Enhancements
 
-* Real-time quiz using WebSockets
-* AI-based question generation
-* Analytics dashboard
-* Mobile app integration
+- Real-time quiz using WebSockets
+- AI-based question generation
+- Analytics dashboard
+- Mobile app integration
 
 ---
 
@@ -200,9 +201,9 @@ http://localhost:5173
 
 This implementation transforms a simple academic project into a **production-grade system blueprint**.
 
-* প্রস্তুত SaaS model-এ scale করার জন্য
-* Microservices architecture-এ migrate করা possible
-* EdTech platform হিসেবে evolve করার capability আছে
+- প্রস্তুত SaaS model-এ scale করার জন্য
+- Microservices architecture-এ migrate করা possible
+- EdTech platform হিসেবে evolve করার capability আছে
 
 ---
 
