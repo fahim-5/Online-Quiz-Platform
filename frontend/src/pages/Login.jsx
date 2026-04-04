@@ -38,31 +38,33 @@ export default function Login() {
   };
 
   return (
-    <div className="page login-page max-w-md mx-auto mt-8 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold">Login</h2>
-      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-        <input
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          placeholder="ID"
-          className="w-full border rounded px-3 py-2"
-        />
-        <input
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          type="password"
-          className="w-full border rounded px-3 py-2"
-        />
-        {error && <div className="text-red-600">{error}</div>}
-        <button
-          type="submit"
-          className="btn-primary mt-2 w-full py-2"
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="max-w-md w-full p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <h2 className="text-2xl font-bold text-black mb-6">Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+            placeholder="ID"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+          />
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            type="password"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+          />
+          {error && <div className="text-red-600 text-sm">{error}</div>}
+          <button
+            type="submit"
+            className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

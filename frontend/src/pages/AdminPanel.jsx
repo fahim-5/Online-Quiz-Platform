@@ -173,11 +173,11 @@ export default function AdminPanel() {
 
   if (!user) {
     return (
-      <div className="page teacher-page p-6">
-        <h2 className="text-2xl font-bold mb-4">Teacher Panel</h2>
-        <p className="mb-4">Please log in to access the teacher panel.</p>
+      <div className="bg-white min-h-screen p-6">
+        <h2 className="text-2xl font-bold text-black mb-4">Teacher Panel</h2>
+        <p className="mb-4 text-gray-700">Please log in to access the teacher panel.</p>
         <button
-          className="btn bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
           onClick={() => navigate("/login")}
         >
           Go to Login
@@ -188,27 +188,27 @@ export default function AdminPanel() {
 
   if (user.role !== "teacher") {
     return (
-      <div className="page teacher-page p-6">
-        <h2 className="text-2xl font-bold mb-4">Teacher Panel</h2>
+      <div className="bg-white min-h-screen p-6">
+        <h2 className="text-2xl font-bold text-black mb-4">Teacher Panel</h2>
         <p className="text-red-600">Access denied — teacher role required.</p>
       </div>
     );
   }
 
   return (
-    <div className="page teacher-page p-6">
+    <div className="bg-white min-h-screen p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Teacher Panel</h2>
+        <h2 className="text-2xl font-bold text-black">Teacher Panel</h2>
         <div>
           <button
-            className="btn bg-gray-200 px-3 py-1 rounded mr-2"
+            className="border border-gray-300 text-black px-3 py-1 rounded-md mr-2 hover:bg-gray-100 transition-colors"
             onClick={fetchAll}
             disabled={loading}
           >
             Refresh
           </button>
           <button
-            className="btn bg-blue-600 text-white px-3 py-1 rounded"
+            className="bg-black text-white px-3 py-1 rounded-md hover:bg-gray-800 transition-colors"
             onClick={() => setShowCreate((s) => !s)}
           >
             {showCreate ? "Cancel" : "Create Quiz"}
@@ -216,19 +216,19 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {loading && <p>Loading teacher data...</p>}
+      {loading && <p className="text-black">Loading teacher data...</p>}
       {error && <p className="text-red-600">{error}</p>}
 
       <DashboardStats stats={stats} />
 
       {showCreate && (
-        <div className="mb-6 p-4 border rounded bg-white">
-          <h3 className="text-lg font-semibold mb-2">Create New Quiz</h3>
+        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+          <h3 className="text-lg font-semibold text-black mb-2">Create New Quiz</h3>
           <form onSubmit={handleCreateQuiz} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium">Title</label>
+              <label className="block text-sm font-medium text-black">Title</label>
               <input
-                className="w-full border px-2 py-1"
+                className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                 value={newQuiz.title}
                 onChange={(e) =>
                   setNewQuiz((n) => ({ ...n, title: e.target.value }))
@@ -237,9 +237,9 @@ export default function AdminPanel() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium">Description</label>
+              <label className="block text-sm font-medium text-black">Description</label>
               <textarea
-                className="w-full border px-2 py-1"
+                className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                 value={newQuiz.description}
                 onChange={(e) =>
                   setNewQuiz((n) => ({ ...n, description: e.target.value }))
@@ -248,12 +248,12 @@ export default function AdminPanel() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium">
+                <label className="block text-sm font-medium text-black">
                   Duration (seconds)
                 </label>
                 <input
                   type="number"
-                  className="w-full border px-2 py-1"
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                   value={newQuiz.timeLimit}
                   onChange={(e) =>
                     setNewQuiz((n) => ({ ...n, timeLimit: e.target.value }))
@@ -261,9 +261,9 @@ export default function AdminPanel() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Rules</label>
+                <label className="block text-sm font-medium text-black">Rules</label>
                 <input
-                  className="w-full border px-2 py-1"
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                   value={newQuiz.rules}
                   onChange={(e) =>
                     setNewQuiz((n) => ({ ...n, rules: e.target.value }))
@@ -273,12 +273,12 @@ export default function AdminPanel() {
             </div>
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div>
-                <label className="block text-sm font-medium">
+                <label className="block text-sm font-medium text-black">
                   Visible From
                 </label>
                 <input
                   type="datetime-local"
-                  className="w-full border px-2 py-1"
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                   value={newQuiz.visibleFrom}
                   onChange={(e) =>
                     setNewQuiz((n) => ({ ...n, visibleFrom: e.target.value }))
@@ -286,10 +286,10 @@ export default function AdminPanel() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Start From</label>
+                <label className="block text-sm font-medium text-black">Start From</label>
                 <input
                   type="datetime-local"
-                  className="w-full border px-2 py-1"
+                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                   value={newQuiz.startFrom}
                   onChange={(e) =>
                     setNewQuiz((n) => ({ ...n, startFrom: e.target.value }))
@@ -298,7 +298,7 @@ export default function AdminPanel() {
               </div>
             </div>
             <div>
-              <button type="submit" className="btn-primary" disabled={loading}>
+              <button type="submit" className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors" disabled={loading}>
                 Create
               </button>
             </div>
@@ -321,9 +321,9 @@ export default function AdminPanel() {
           </div>
         </div>
         {lastDeleted && (
-          <div className="mt-2 p-3 bg-yellow-50 border-l-4 border-yellow-400">
+          <div className="mt-2 p-3 bg-gray-100 border-l-4 border-black">
             Deleted "{lastDeleted.title}" —{" "}
-            <button className="text-blue-600 underline" onClick={handleUndo}>
+            <button className="text-black underline font-medium" onClick={handleUndo}>
               Undo
             </button>{" "}
             (30s)

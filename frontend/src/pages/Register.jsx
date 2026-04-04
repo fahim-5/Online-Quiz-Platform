@@ -41,77 +41,81 @@ export default function Register() {
   };
 
   return (
-    <div className="page register-page max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-4">Register</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block">
-          <span className="text-sm text-gray-700">Name</span>
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Full name"
-            className="mt-1 block w-full border rounded px-3 py-2"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm text-gray-700">ID</span>
-          <input
-            name="id"
-            value={form.id}
-            onChange={handleChange}
-            placeholder="Enter your ID"
-            className="mt-1 block w-full border rounded px-3 py-2"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm text-gray-700">Password</span>
-          <input
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Enter password"
-            type="password"
-            className="mt-1 block w-full border rounded px-3 py-2"
-          />
-        </label>
-
-        <fieldset className="flex gap-4 items-center">
-          <legend className="sr-only">Role</legend>
-          <label className="flex items-center gap-2">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="max-w-md w-full p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <h2 className="text-2xl font-bold text-black mb-6">Register</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <label className="block">
+            <span className="text-sm text-gray-700 font-medium">Name</span>
             <input
-              type="radio"
-              name="role"
-              value="student"
-              checked={form.role === "student"}
+              name="name"
+              value={form.name}
               onChange={handleChange}
+              placeholder="Full name"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
-            <span className="text-sm">Student</span>
           </label>
-          <label className="flex items-center gap-2">
+
+          <label className="block">
+            <span className="text-sm text-gray-700 font-medium">ID</span>
             <input
-              type="radio"
-              name="role"
-              value="teacher"
-              checked={form.role === "teacher"}
+              name="id"
+              value={form.id}
               onChange={handleChange}
+              placeholder="Enter your ID"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
-            <span className="text-sm">Teacher</span>
           </label>
-        </fieldset>
 
-        {error && <div className="text-red-600 text-sm">{error}</div>}
+          <label className="block">
+            <span className="text-sm text-gray-700 font-medium">Password</span>
+            <input
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Enter password"
+              type="password"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            />
+          </label>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-primary w-full py-2"
-        >
-          {loading ? "Registering..." : "Register"}
-        </button>
-      </form>
+          <fieldset className="flex gap-6 items-center">
+            <legend className="sr-only">Role</legend>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="student"
+                checked={form.role === "student"}
+                onChange={handleChange}
+                className="text-black focus:ring-black"
+              />
+              <span className="text-sm text-black">Student</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="teacher"
+                checked={form.role === "teacher"}
+                onChange={handleChange}
+                className="text-black focus:ring-black"
+              />
+              <span className="text-sm text-black">Teacher</span>
+            </label>
+          </fieldset>
+
+          {error && <div className="text-red-600 text-sm">{error}</div>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {loading ? "Registering..." : "Register"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
