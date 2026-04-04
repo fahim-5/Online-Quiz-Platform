@@ -179,10 +179,10 @@ const Footer = () => {
               &copy; {new Date().getFullYear()} Quizly. All rights reserved.
             </p>
             <p className="text-sm text-gray-600">
-              Built by{" "}
+              Built with 🖤 by {" "}
               <a
                 href="https://iamfaysal.netlify.app/"
-                className="text-gray-600 hover:text-black-bold transition-colors underline"
+                className="text-gray-400 hover:text-black-italic transition-colors font-bold italic"
               >
                 Bafu
               </a>

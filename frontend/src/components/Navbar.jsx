@@ -30,7 +30,7 @@ const Navbar = () => {
               <input
                 type="search"
                 placeholder="Search quizzes..."
-                className="border rounded-md px-3 py-1 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black bg-white"
+                className="border rounded-md px-3 py-1 text-sm w-64 focus:outline-none focus:ring-1 focus:ring-black text-black bg-white"
                 aria-label="Search quizzes"
               />
             </div>

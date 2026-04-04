@@ -5,7 +5,9 @@ export default function Register() {
   const [form, setForm] = useState({
     name: "",
     id: "",
+    email: "",
     password: "",
+    confirmPassword: "",
     role: "student",
   });
   const [loading, setLoading] = useState(false);
@@ -19,13 +21,16 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!form.id || !form.password)
-      return setError("ID and password are required");
+    if (!form.id || !form.password || !form.email)
+      return setError("ID, email and password are required");
+    if (form.password !== form.confirmPassword)
+      return setError("Passwords do not match");
     setLoading(true);
     try {
       await api.post("/auth/register", {
         name: form.name,
         id: form.id,
+        email: form.email,
         password: form.password,
         role: form.role,
       });
@@ -57,6 +62,18 @@ export default function Register() {
           </label>
 
           <label className="block">
+            <span className="text-sm text-gray-700 font-medium">Email</span>
+            <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              type="email"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            />
+          </label>
+
+          <label className="block">
             <span className="text-sm text-gray-700 font-medium">ID</span>
             <input
               name="id"
@@ -79,7 +96,21 @@ export default function Register() {
             />
           </label>
 
-          <fieldset className="flex gap-6 items-center">
+          <label className="block">
+            <span className="text-sm text-gray-700 font-medium">
+              Retype Password
+            </span>
+            <input
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="Retype password"
+              type="password"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            />
+          </label>
+
+          <fieldset className="flex gap-6 items-center justify-center">
             <legend className="sr-only">Role</legend>
             <label className="flex items-center gap-2">
               <input
@@ -106,7 +137,6 @@ export default function Register() {
           </fieldset>
 
           {error && <div className="text-red-600 text-sm">{error}</div>}
-
           <button
             type="submit"
             disabled={loading}
@@ -114,9 +144,15 @@ export default function Register() {
           >
             {loading ? "Registering..." : "Register"}
           </button>
+
+          <div className="text-center mt-3 text-sm">
+            Already have an account?{" "}
+            <a href="/login" className="text-black font-medium underline">
+              Login now
+            </a>
+          </div>
         </form>
       </div>
     </div>
   );
 }
-
