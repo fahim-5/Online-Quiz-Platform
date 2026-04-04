@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
+import logo from "../assets/images/logo.png";
 import useAuth from "../hooks/useAuth";
 
 const Navbar = () => {
@@ -21,9 +22,7 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-black">
-                Quizly
-              </span>
+              <img src={logo} alt="Qizy logo" className="h-12 mr-2 w-auto" />
             </Link>
 
             {/* Search (desktop) */}
@@ -62,7 +61,10 @@ const Navbar = () => {
                 >
                   Login
                 </Link>
-                <Link to="/register" className="text-sm px-3 py-2 bg-black text-white rounded-md hover:bg-gray-800">
+                <Link
+                  to="/register"
+                  className="text-sm px-3 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+                >
                   Sign up
                 </Link>
               </div>
@@ -75,7 +77,9 @@ const Navbar = () => {
                   <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm text-black">
                     {(user.name || "U")[0]}
                   </div>
-                  <span className="text-sm text-black">{user.name || "User"}</span>
+                  <span className="text-sm text-black">
+                    {user.name || "User"}
+                  </span>
                 </button>
               </div>
             )}
