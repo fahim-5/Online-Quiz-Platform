@@ -88,7 +88,7 @@ export default function Register() {
                 value="student"
                 checked={form.role === "student"}
                 onChange={handleChange}
-                className="text-black focus:ring-black"
+                className="accent-black focus:ring-black"
               />
               <span className="text-sm text-black">Student</span>
             </label>
@@ -99,7 +99,7 @@ export default function Register() {
                 value="teacher"
                 checked={form.role === "teacher"}
                 onChange={handleChange}
-                className="text-black focus:ring-black"
+                className="accent-black focus:ring-black"
               />
               <span className="text-sm text-black">Teacher</span>
             </label>
@@ -119,3 +119,4 @@ export default function Register() {
     </div>
   );
 }
+

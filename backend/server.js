@@ -28,6 +28,7 @@ const colors = {
   blue: "\x1b[34m",
 };
 
+
 // Security Middleware
 app.use(helmet());
 app.use(mongoSanitize());
