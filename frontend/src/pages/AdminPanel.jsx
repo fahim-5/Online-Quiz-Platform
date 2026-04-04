@@ -23,6 +23,8 @@ export default function AdminPanel() {
     description: "",
     timeLimit: 300,
     rules: "",
+    visibleFrom: "",
+    startFrom: "",
   });
 
   useEffect(() => {
@@ -37,10 +39,12 @@ export default function AdminPanel() {
     setError(null);
 
     try {
-      // Try fetching users, quizzes, results counts. Endpoints may vary; handle failures gracefully.
+      // Try fetching users, quizzes, results counts. Teachers request all quizzes via ?all=true.
+      const quizzesUrl =
+        user && user.role === "teacher" ? "/quizzes?all=true" : "/quizzes";
       const [usersRes, quizzesRes, resultsRes] = await Promise.allSettled([
         api.get("/users"),
-        api.get("/quizzes"),
+        api.get(quizzesUrl),
         api.get("/results"),
       ]);
 
@@ -93,6 +97,8 @@ export default function AdminPanel() {
         description: newQuiz.description,
         timeLimit: Number(newQuiz.timeLimit) || 0,
         rules: newQuiz.rules,
+        visibleFrom: newQuiz.visibleFrom || undefined,
+        startFrom: newQuiz.startFrom || undefined,
       };
       await api.post("/quizzes", payload);
       setNewQuiz({ title: "", description: "", timeLimit: 300, rules: "" });
@@ -261,6 +267,32 @@ export default function AdminPanel() {
                   value={newQuiz.rules}
                   onChange={(e) =>
                     setNewQuiz((n) => ({ ...n, rules: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div>
+                <label className="block text-sm font-medium">
+                  Visible From
+                </label>
+                <input
+                  type="datetime-local"
+                  className="w-full border px-2 py-1"
+                  value={newQuiz.visibleFrom}
+                  onChange={(e) =>
+                    setNewQuiz((n) => ({ ...n, visibleFrom: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Start From</label>
+                <input
+                  type="datetime-local"
+                  className="w-full border px-2 py-1"
+                  value={newQuiz.startFrom}
+                  onChange={(e) =>
+                    setNewQuiz((n) => ({ ...n, startFrom: e.target.value }))
                   }
                 />
               </div>
