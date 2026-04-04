@@ -11,10 +11,12 @@ const createQuestion = async (req, res, next) => {
 
 const getQuestionsForQuiz = async (req, res, next) => {
   try {
-    // Do not send correctIndex to the client
-    const questions = await Question.find({ quiz: req.params.quizId }).select(
-      "-correctIndex",
-    );
+    // Teachers (authenticated) should receive correctIndex so they can set/verify answers.
+    const query = Question.find({ quiz: req.params.quizId });
+    if (!(req.user && req.user.role === "teacher")) {
+      query.select("-correctIndex");
+    }
+    const questions = await query;
     res.json({ success: true, questions });
   } catch (err) {
     next(err);
@@ -32,9 +34,11 @@ const deleteQuestion = async (req, res, next) => {
 
 const getQuestion = async (req, res, next) => {
   try {
-    const question = await Question.findById(req.params.id).select(
-      "-correctIndex",
-    );
+    const query = Question.findById(req.params.id);
+    if (!(req.user && req.user.role === "teacher")) {
+      query.select("-correctIndex");
+    }
+    const question = await query;
     if (!question)
       return res
         .status(404)
@@ -51,13 +55,20 @@ const updateQuestion = async (req, res, next) => {
     const question = await Question.findByIdAndUpdate(req.params.id, updates, {
       new: true,
       runValidators: true,
-    }).select("-correctIndex");
+    });
 
     if (!question)
       return res
         .status(404)
         .json({ success: false, message: "Question not found" });
-    res.json({ success: true, question });
+
+    // If requester is not teacher, strip correctIndex in response
+    const out = question.toObject();
+    if (!(req.user && req.user.role === "teacher")) {
+      delete out.correctIndex;
+    }
+
+    res.json({ success: true, question: out });
   } catch (err) {
     next(err);
   }

@@ -8,15 +8,21 @@ function QuestionForm({ onSubmit, initial = null }) {
   const [options, setOptions] = useState(
     initial?.options || [{ text: "" }, { text: "" }],
   );
-  const [correctIndex, setCorrectIndex] = useState(initial?.correctIndex ?? 0);
+  const [correctIndex, setCorrectIndex] = useState(
+    initial?.correctIndex !== undefined ? initial.correctIndex : null,
+  );
   const [points, setPoints] = useState(initial?.points ?? 1);
+  const [validationError, setValidationError] = useState(null);
 
   useEffect(() => {
     if (initial) {
       setText(initial.text || "");
       setOptions(initial.options || [{ text: "" }, { text: "" }]);
-      setCorrectIndex(initial.correctIndex ?? 0);
+      setCorrectIndex(
+        initial.correctIndex !== undefined ? initial.correctIndex : null,
+      );
       setPoints(initial.points ?? 1);
+      setValidationError(null);
     }
   }, [initial]);
 
@@ -34,6 +40,18 @@ function QuestionForm({ onSubmit, initial = null }) {
 
   const submit = (e) => {
     e && e.preventDefault();
+    // Validation: at least 2 non-empty options and a selected correctIndex
+    const filledOptions = options.map((o) => (o.text || "").trim());
+    if (filledOptions.length < 2 || filledOptions.filter(Boolean).length < 2) {
+      setValidationError("Please provide at least two options with text.");
+      return;
+    }
+    if (correctIndex === null || correctIndex === undefined) {
+      setValidationError("Please select the correct answer.");
+      return;
+    }
+
+    setValidationError(null);
     onSubmit({
       text,
       options,
@@ -42,7 +60,7 @@ function QuestionForm({ onSubmit, initial = null }) {
     });
     setText("");
     setOptions([{ text: "" }, { text: "" }]);
-    setCorrectIndex(0);
+    setCorrectIndex(null);
     setPoints(1);
   };
 
@@ -64,7 +82,7 @@ function QuestionForm({ onSubmit, initial = null }) {
             <input
               type="radio"
               name="correct"
-              checked={Number(correctIndex) === i}
+              checked={correctIndex !== null && Number(correctIndex) === i}
               onChange={() => setCorrectIndex(i)}
             />
             <input
@@ -102,9 +120,14 @@ function QuestionForm({ onSubmit, initial = null }) {
         </div>
       </div>
       <div>
-        <button type="submit" className="btn-primary">
-          Save Question
-        </button>
+        <div>
+          {validationError && (
+            <div className="text-red-600 mb-2">{validationError}</div>
+          )}
+          <button type="submit" className="btn-primary">
+            Save Question
+          </button>
+        </div>
       </div>
     </form>
   );

@@ -2,7 +2,8 @@ import Quiz from "../models/Quiz.js";
 
 const createQuiz = async (req, res, next) => {
   try {
-    const { title, description, timeLimit, rules } = req.body;
+    const { title, description, timeLimit, rules, visibleFrom, startFrom } =
+      req.body;
 
     if (!title || typeof title !== "string" || title.trim() === "") {
       return res
@@ -15,6 +16,8 @@ const createQuiz = async (req, res, next) => {
       description: description ? String(description).trim() : "",
       timeLimit: Number(timeLimit) || 0,
       rules: rules ? String(rules).trim() : "",
+      visibleFrom: visibleFrom ? new Date(visibleFrom) : undefined,
+      startFrom: startFrom ? new Date(startFrom) : undefined,
     };
 
     const quiz = await Quiz.create(payload);
@@ -26,9 +29,23 @@ const createQuiz = async (req, res, next) => {
 
 const getQuizzes = async (req, res, next) => {
   try {
-    // By default return active quizzes only; teachers can request all via ?all=true
-    const filter = req.query.all === "true" ? {} : { isActive: true };
-    const quizzes = await Quiz.find(filter).limit(50);
+    // By default return active quizzes only and only those visible now.
+    // Teachers/admins can request all via ?all=true.
+    const now = new Date();
+    if (req.query.all === "true") {
+      const quizzes = await Quiz.find({}).limit(500);
+      return res.json({ success: true, quizzes });
+    }
+
+    // Only return quizzes that are active and either have no visibleFrom or visibleFrom <= now
+    const quizzes = await Quiz.find({
+      isActive: true,
+      $or: [
+        { visibleFrom: { $exists: false } },
+        { visibleFrom: null },
+        { visibleFrom: { $lte: now } },
+      ],
+    }).limit(50);
     res.json({ success: true, quizzes });
   } catch (err) {
     next(err);

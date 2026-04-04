@@ -5,6 +5,9 @@ const QuizSchema = new mongoose.Schema({
   description: { type: String },
   timeLimit: { type: Number, default: 0 }, // seconds
   rules: { type: String }, // human readable rules/notes
+  // Scheduling: when quiz becomes visible to students and when the exam may be started
+  visibleFrom: { type: Date },
+  startFrom: { type: Date },
   isActive: { type: Boolean, default: true },
   deletedAt: { type: Date },
   deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

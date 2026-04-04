@@ -8,6 +8,22 @@ const startResult = async (req, res, next) => {
   try {
     const user = req.user && req.user.id ? req.user.id : req.body.user;
     const { quiz } = req.body;
+    // Enforce scheduled start time when present
+    const quizDoc = await Quiz.findById(quiz);
+    if (!quizDoc)
+      return res
+        .status(404)
+        .json({ success: false, message: "Quiz not found" });
+    const now = new Date();
+    if (quizDoc.startFrom && now < new Date(quizDoc.startFrom)) {
+      // allow teachers to create drafts early
+      if (!(req.user && req.user.role === "teacher")) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Quiz not open yet" });
+      }
+    }
+
     const draft = await Result.create({
       user,
       quiz,
@@ -73,17 +89,16 @@ const submitResult = async (req, res, next) => {
     quizQuestions.forEach((q) => {
       const id = q._id.toString();
       qMap[id] = q;
-      totalPossible += q.points || 1;
+      // total possible per question is q.points (legacy)
+      totalPossible += q.points || 0;
     });
 
-    // Compute score by comparing answers against qMap; unanswered questions score 0
+    // Compute score by checking correctIndex equality
     let score = 0;
     sanitizedAnswers.forEach((a) => {
       const q = qMap[a.question];
       if (!q) return; // ignore answers to questions not in this quiz
-      const pts = q.points || 1;
       const idx = a.answerIndex;
-      // only accept finite integer indices within options range
       if (
         Number.isFinite(idx) &&
         Number.isInteger(idx) &&
@@ -91,7 +106,11 @@ const submitResult = async (req, res, next) => {
         idx >= 0 &&
         idx < q.options.length
       ) {
-        if (idx === q.correctIndex) score += pts;
+        const correct =
+          typeof q.correctIndex !== "undefined" ? Number(q.correctIndex) : null;
+        if (correct !== null && idx === correct) {
+          score += q.points || 0;
+        }
       }
     });
 

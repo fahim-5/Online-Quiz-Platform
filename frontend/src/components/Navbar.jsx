@@ -21,8 +21,7 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <div className="h-8 w-8 bg-primary-600 rounded-lg shadow" />
-              <span className="ml-2 text-xl font-bold text-gray-900">
+              <span className="text-xl font-bold text-black">
                 Quizly
               </span>
             </Link>
@@ -32,7 +31,7 @@ const Navbar = () => {
               <input
                 type="search"
                 placeholder="Search quizzes..."
-                className="border rounded-md px-3 py-1 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="border rounded-md px-3 py-1 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black bg-white"
                 aria-label="Search quizzes"
               />
             </div>
@@ -46,8 +45,8 @@ const Navbar = () => {
                 to={item.href}
                 className={`${
                   location.pathname === item.href
-                    ? "text-primary-600 border-b-2 border-primary-600"
-                    : "text-gray-700 hover:text-primary-600"
+                    ? "text-black border-b-2 border-black"
+                    : "text-black hover:text-gray-600"
                 } px-3 py-2 text-sm font-medium transition-colors duration-200`}
               >
                 {item.name}
@@ -59,11 +58,11 @@ const Navbar = () => {
               <div className="flex items-center space-x-2">
                 <Link
                   to="/login"
-                  className="text-sm px-3 py-2 text-gray-700 hover:text-primary-600"
+                  className="text-sm px-3 py-2 text-black hover:text-gray-600"
                 >
                   Login
                 </Link>
-                <Link to="/register" className="btn-primary text-sm">
+                <Link to="/register" className="text-sm px-3 py-2 bg-black text-white rounded-md hover:bg-gray-800">
                   Sign up
                 </Link>
               </div>
@@ -73,10 +72,10 @@ const Navbar = () => {
                   onClick={() => alert("Open profile menu")}
                   className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100"
                 >
-                  <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center text-sm">
+                  <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm text-black">
                     {(user.name || "U")[0]}
                   </div>
-                  <span className="text-sm">{user.name || "User"}</span>
+                  <span className="text-sm text-black">{user.name || "User"}</span>
                 </button>
               </div>
             )}
@@ -86,7 +85,7 @@ const Navbar = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-black hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black"
             >
               <svg
                 className="h-6 w-6"
@@ -125,8 +124,8 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                   className={`${
                     location.pathname === item.href
-                      ? "bg-primary-50 text-primary-600"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-primary-600"
+                      ? "bg-gray-100 text-black"
+                      : "text-black hover:bg-gray-50 hover:text-gray-600"
                   } block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200`}
                 >
                   {item.name}
@@ -139,14 +138,14 @@ const Navbar = () => {
                     <Link
                       to="/login"
                       onClick={() => setIsOpen(false)}
-                      className="block px-3 py-2 text-base text-gray-700"
+                      className="block px-3 py-2 text-base text-black"
                     >
                       Login
                     </Link>
                     <Link
                       to="/register"
                       onClick={() => setIsOpen(false)}
-                      className="block mt-1 px-3 py-2 btn-primary text-base text-center"
+                      className="block mt-1 px-3 py-2 bg-black text-white rounded-md text-base text-center"
                     >
                       Create account
                     </Link>
@@ -156,7 +155,7 @@ const Navbar = () => {
                     <Link
                       to="/dashboard"
                       onClick={() => setIsOpen(false)}
-                      className="block px-3 py-2 text-base text-gray-700"
+                      className="block px-3 py-2 text-base text-black"
                     >
                       Dashboard
                     </Link>
