@@ -30,21 +30,28 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { id, password, role, name } = req.body;
+    const { id, email, password, role, name } = req.body;
 
-    if (!id || !password)
-      return next(new AppError("Identifier and password are required", 400));
+    if (!id || !password || !email)
+      return next(
+        new AppError("Identifier, email and password are required", 400),
+      );
 
-    // Check if user exists
-    const existingUser = await User.findOne({ identifier: id });
-    if (existingUser) {
+    // Check if user exists by identifier or email
+    const existingById = await User.findOne({ identifier: id });
+    if (existingById) {
       return next(new AppError("User already exists with this ID", 400));
+    }
+    const existingByEmail = await User.findOne({ email: email.toLowerCase() });
+    if (existingByEmail) {
+      return next(new AppError("User already exists with this email", 400));
     }
 
     // Create user
     const user = await User.create({
       name: name || undefined,
       identifier: id,
+      email: email.toLowerCase(),
       password,
       role: role || "student",
     });
@@ -60,17 +67,24 @@ export const register = async (req, res, next) => {
 // @access  Public
 export const login = async (req, res, next) => {
   try {
-    const { id, password } = req.body;
+    const { id, password, email } = req.body;
 
-    // Check if id and password exist
-    if (!id || !password) {
-      return next(new AppError("Please provide id and password", 400));
+    // Allow login by id or email
+    if ((!id && !email) || !password) {
+      return next(new AppError("Please provide id/email and password", 400));
     }
 
-    // Check if user exists and password is correct
-    const user = await User.findOne({ identifier: id }).select("+password");
+    let user;
+    if (email) {
+      user = await User.findOne({ email: email.toLowerCase() }).select(
+        "+password",
+      );
+    } else {
+      user = await User.findOne({ identifier: id }).select("+password");
+    }
+
     if (!user || !(await user.comparePassword(password))) {
-      return next(new AppError("Invalid ID or password", 401));
+      return next(new AppError("Invalid credentials", 401));
     }
 
     sendTokenResponse(user, 200, res);

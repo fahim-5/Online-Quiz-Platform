@@ -160,16 +160,147 @@ export default function Result() {
   }
 
   // Student view: show immediate result if provided in state
+  // Student view: show detailed result and question review
+  const [result, setResult] = useState(state?.result || null);
+
+  useEffect(() => {
+    // If a full result object was passed via navigation state, use it.
+    // Otherwise fetch the user's latest completed result.
+    const loadLatest = async () => {
+      if (result) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.get("/results/me");
+        const list = res?.data?.results || [];
+        if (list.length > 0) setResult(list[0]);
+        else setError("No result data available");
+      } catch (err) {
+        setError(
+          err?.response?.data?.message ||
+            err.message ||
+            "Failed to load result",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadLatest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fmtTime = (sec) => {
+    if (!sec && sec !== 0) return "-";
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const renderOption = (qObj, opt, idx, userSelected, correctIndex) => {
+    const isCorrect =
+      typeof correctIndex !== "undefined" && idx === correctIndex;
+    const isSelected = userSelected === idx;
+    const base = "p-3 border rounded mb-2";
+    const className = isCorrect
+      ? `${base} bg-green-50 border-green-200`
+      : isSelected
+        ? `${base} bg-red-50 border-red-200`
+        : `${base} bg-white border-gray-200`;
+
+    return (
+      <div key={idx} className={className}>
+        <div className="flex justify-between items-start">
+          <div>{opt.text}</div>
+          <div>
+            {isCorrect && (
+              <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
+                Correct
+              </span>
+            )}
+            {!isCorrect && isSelected && (
+              <span className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded">
+                Your Answer
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
+
+  if (!result) {
+    return (
+      <div className="page result-page p-6">
+        <h2 className="text-2xl font-bold">Results</h2>
+        <p>No result data available.</p>
+      </div>
+    );
+  }
+
+  const pct = result.total
+    ? Math.round((result.score / result.total) * 100)
+    : 0;
+
   return (
     <div className="page result-page p-6">
-      <h2 className="text-2xl font-bold">Results</h2>
-      {score !== null && total !== null ? (
-        <p>
-          Score: {score} / {total}
+      <div className="max-w-3xl mx-auto bg-white rounded shadow p-6">
+        <h2 className="text-3xl font-bold text-center mb-2">Quiz Completed!</h2>
+        <p className="text-center text-gray-600 mb-4">
+          {result.quiz && result.quiz.title}
         </p>
-      ) : (
-        <p>No result data available.</p>
-      )}
+
+        <div className="text-center">
+          <div className="text-6xl font-extrabold text-red-600">{pct}%</div>
+          <div className="text-sm text-gray-500">
+            {result.score} out of {result.total} points
+          </div>
+        </div>
+
+        <div className="mt-6 border-t pt-4 grid grid-cols-3 gap-4 text-center text-sm text-gray-700">
+          <div>
+            <div className="text-xs text-gray-500">Time Taken</div>
+            <div className="font-semibold">{fmtTime(result.duration)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Your Rank</div>
+            <div className="font-semibold">-</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Accuracy</div>
+            <div className="font-semibold">{pct}%</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto mt-6">
+        <h3 className="text-lg font-semibold mb-3">Question Review</h3>
+        <div className="space-y-4">
+          {(result.answers || []).map((a, i) => {
+            const q = a.question || {};
+            const userIdx =
+              typeof a.answerIndex !== "undefined" ? a.answerIndex : null;
+            const correctIdx = q.correctIndex;
+            return (
+              <div key={i} className="p-4 bg-gray-50 border rounded">
+                <div className="mb-3 font-medium">
+                  Q{i + 1} {q.text || "(question deleted)"}
+                </div>
+                <div>
+                  {(q.options || []).map((opt, idx) =>
+                    renderOption(q, opt, idx, userIdx, correctIdx),
+                  )}
+                </div>
+                <div className="text-sm text-gray-500 mt-2">
+                  Points: {q.points || 0} / {q.points || 0}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

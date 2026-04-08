@@ -37,27 +37,223 @@ const Home = () => {
     return (
       <div className="min-h-screen bg-white text-black">
         <main className="max-w-6xl mx-auto px-6 py-16">
-          {/* Hero */}
-          <section className="text-center py-12">
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
-              Run quizzes. Track results. Simple.
-            </h1>
-            <p className="text-lg text-gray-600 mb-6">
-              Please login to continue.
-            </p>
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <Link
-                to="/login"
-                className="px-6 py-3 bg-black text-white rounded-md hover:opacity-90"
-              >
-                Teacher
-              </Link>
-              <Link
-                to="/login"
-                className="px-6 py-3 border border-black rounded-md"
-              >
-                Student
-              </Link>
+          {/* Hero Section - Black & White Version */}
+          <section className="py-12">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                {/* Left: Text */}
+                <div>
+                  <h1 className="text-4xl md:text-6xl font-extrabold text-black leading-tight mb-6">
+                    Create Engaging Quizzes.
+                    <br />
+                    Measure Real Learning.
+                  </h1>
+
+                  <p className="text-lg text-gray-600 mb-6 max-w-xl">
+                    The all-in-one quiz platform where teachers build smarter
+                    assessments in minutes and students learn through timed,
+                    interactive challenges. Auto-scoring, leaderboards, and
+                    detailed analytics included.
+                  </p>
+
+                  <div className="flex items-center gap-4 mb-6">
+                    <Link
+                      to="/login"
+                      className="px-6 py-3 bg-black text-white rounded-md shadow-sm hover:bg-gray-800 transition-colors"
+                    >
+                      For Teachers
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="px-6 py-3 border border-gray-300 rounded-md bg-white text-black hover:bg-gray-50 transition-colors"
+                    >
+                      For Students
+                    </Link>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <span className="text-black">✓</span>
+                      50,000+ quizzes created
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-black">✓</span>
+                      Instant auto-grading
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Visual card - Black & White Version */}
+                <div className="flex justify-center md:justify-end">
+                  <div className="relative w-full max-w-md">
+                    <div className="rounded-2xl p-6 bg-gray-900 text-white shadow-xl">
+                      <div className="bg-gray-800 rounded-xl p-4 mb-6">
+                        <div className="text-sm opacity-80">Active Quiz</div>
+                        <div className="text-lg font-semibold mt-1">
+                          General Knowledge Quiz
+                        </div>
+                        <div className="text-sm opacity-70">
+                          Question 3 of 10
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-800 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-lg">
+                              🏆
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold">
+                                Leaderboard
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <ul className="space-y-3 text-sm opacity-90">
+                          <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded-full bg-gray-700 text-xs flex items-center justify-center">
+                                1
+                              </div>
+                              Alice Johnson
+                            </div>
+                            <div>98%</div>
+                          </li>
+                          <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded-full bg-gray-700 text-xs flex items-center justify-center">
+                                2
+                              </div>
+                              Bob Smith
+                            </div>
+                            <div>95%</div>
+                          </li>
+                          <li className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded-full bg-gray-700 text-xs flex items-center justify-center">
+                                3
+                              </div>
+                              Charlie Davis
+                            </div>
+                            <div>92%</div>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="absolute -bottom-6 left-6 bg-white border border-gray-200 rounded-lg shadow p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 text-black flex items-center justify-center">
+                        ✓
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm">100%</div>
+                        <div className="text-xs text-gray-600">Auto-Graded</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Features Grid: Everything You Need to Succeed */}
+          <section className="py-12">
+            <div className="max-w-6xl mx-auto px-6">
+              <h2 className="text-3xl font-bold text-center mb-2 text-black">
+                Everything You Need to Succeed
+              </h2>
+              <p className="text-center text-gray-600 max-w-2xl mx-auto mb-8">
+                Powerful features designed for both teachers and students to
+                make learning engaging and effective.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Card 1 */}
+                <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="text-2xl">📚</div>
+                    <div>
+                      <h3 className="font-semibold text-black">Question Bank</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Build and manage your own library of questions. Reuse
+                        across multiple quizzes and organize by category.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 2 */}
+                <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="text-2xl">⏱️</div>
+                    <div>
+                      <h3 className="font-semibold text-black">Smart Timer</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Set time limits for quizzes. Students see a live
+                        countdown timer that keeps them focused and engaged.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3 */}
+                <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="text-2xl">⚡</div>
+                    <div>
+                      <h3 className="font-semibold text-black">Auto-Scoring</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Instant grading for objective questions. No manual work
+                        required—results appear immediately after submission.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 4 */}
+                <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="text-2xl">🏆</div>
+                    <div>
+                      <h3 className="font-semibold text-black">Leaderboard</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Gamify learning with competitive leaderboards. Students
+                        can see how they rank and stay motivated to improve.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 5 */}
+                <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="text-2xl">📊</div>
+                    <div>
+                      <h3 className="font-semibold text-black">Score Analytics</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Track student performance over time. Detailed history
+                        and insights help identify strengths and weaknesses.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 6 */}
+                <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="text-2xl">🛡️</div>
+                    <div>
+                      <h3 className="font-semibold text-black">Secure Access</h3>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Role-based authentication ensures teachers and students
+                        have appropriate access and data protection.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -65,28 +261,28 @@ const Home = () => {
           <section className="flex items-center justify-center py-8">
             <div className="flex items-center gap-6">
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center text-black">
                   1
                 </div>
-                <div className="mt-2">Create</div>
+                <div className="mt-2 text-black">Create</div>
                 <div className="text-sm text-gray-600">
                   Build quiz in minutes
                 </div>
               </div>
               <div className="w-24" />
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center text-black">
                   2
                 </div>
-                <div className="mt-2">Share</div>
+                <div className="mt-2 text-black">Share</div>
                 <div className="text-sm text-gray-600">Send code to class</div>
               </div>
               <div className="w-24" />
               <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full border-2 border-black flex items-center justify-center text-black">
                   3
                 </div>
-                <div className="mt-2">Play</div>
+                <div className="mt-2 text-black">Play</div>
                 <div className="text-sm text-gray-600">
                   Get results instantly
                 </div>
@@ -94,13 +290,11 @@ const Home = () => {
             </div>
           </section>
 
-          {/* Features */}
-
+          {/* Teacher & Student Cards */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8">
             {/* Teacher Card */}
-            <div className="border border-black p-6 rounded-md">
+            <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-6">
-                {/* Image */}
                 <div className="flex justify-center">
                   <img
                     src={teacherImg}
@@ -108,23 +302,23 @@ const Home = () => {
                     className="w-40 h-auto object-contain"
                   />
                 </div>
-
-                {/* Content */}
                 <div>
-                  <h3 className="font-semibold text-xl mb-3">For Teachers</h3>
-
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-center gap-2">
-                      <span className="font-bold">✓</span> Create quizzes
+                  <h3 className="font-semibold text-xl mb-2 text-black">For Teachers</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Create, manage, and monitor quizzes with powerful admin tools.
+                  </p>
+                  <ul className="space-y-2 text-gray-600 list-inside text-sm">
+                    <li>
+                      <strong className="text-black">Build Custom Quizzes:</strong> Set title, duration, rules, and questions
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="font-bold">✓</span> Add questions
+                    <li>
+                      <strong className="text-black">Manage Question Bank:</strong> Add, edit, delete, and organize questions
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="font-bold">✓</span> CSV reports
+                    <li>
+                      <strong className="text-black">Monitor Performance:</strong> Track participation and score records
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="font-bold">✓</span> Auto-grading
+                    <li>
+                      <strong className="text-black">Zero Grading Work:</strong> Automatic scoring saves hours per week
                     </li>
                   </ul>
                 </div>
@@ -132,9 +326,8 @@ const Home = () => {
             </div>
 
             {/* Student Card */}
-            <div className="border border-black p-6 rounded-md">
+            <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-6">
-                {/* Image */}
                 <div className="flex justify-center">
                   <img
                     src={studentImg}
@@ -142,22 +335,54 @@ const Home = () => {
                     className="w-40 h-auto object-contain"
                   />
                 </div>
-
-                {/* Content */}
                 <div>
-                  <h3 className="font-semibold text-xl mb-3">For Students</h3>
-
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-center gap-2">
-                      <span className="font-bold">✓</span> Timed quizzes
+                  <h3 className="font-semibold text-xl mb-2 text-black">For Students</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Take quizzes, compete, and track your learning progress.
+                  </p>
+                  <ul className="space-y-2 text-gray-600 list-inside text-sm">
+                    <li>
+                      <strong className="text-black">Timed Challenges:</strong> Complete quizzes within fixed time limits
                     </li>
-                    <li className="flex items-center gap-2">
-                      <span className="font-bold">✓</span> See score
+                    <li>
+                      <strong className="text-black">Instant Results:</strong> See your score immediately after submission
                     </li>
-                    <li className="flex items-center gap-2">
-                      ✓  Works on phone
+                    <li>
+                      <strong className="text-black">Track Your Progress:</strong> View complete score history and analytics
+                    </li>
+                    <li>
+                      <strong className="text-black">Compete & Win:</strong> Climb the leaderboard and challenge peers
                     </li>
                   </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* CTA Section - Integrated */}
+          <section className="py-12">
+            <div className="bg-black text-white rounded-lg">
+              <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Ready to Transform Your Assessments?
+                </h2>
+                <p className="text-lg md:text-xl mb-6 opacity-80">
+                  Join thousands of educators and students using Quizly to make
+                  learning more engaging.
+                </p>
+                <div className="flex items-center justify-center gap-4 flex-wrap">
+                  <Link
+                    to="/register"
+                    className="bg-white text-black px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors"
+                  >
+                    Get Started as Teacher
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition-colors"
+                  >
+                    Join as Student
+                  </Link>
                 </div>
               </div>
             </div>
@@ -182,7 +407,7 @@ const Home = () => {
             </Link>
             <Link
               to="/teacher"
-              className="border border-black text-black px-4 py-2 rounded-md hover:bg-gray-100 transition-colors"
+              className="border border-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-100 transition-colors"
             >
               Create Quiz
             </Link>
@@ -191,19 +416,19 @@ const Home = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            Total Quizzes
+            <span className="text-gray-600">Total Quizzes</span>
             <br />
             <span className="text-2xl font-bold text-black">
               {quizzes.length}
             </span>
           </div>
           <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            Active Students
+            <span className="text-gray-600">Active Students</span>
             <br />
             <span className="text-2xl font-bold text-black">—</span>
           </div>
           <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            Recent Results
+            <span className="text-gray-600">Recent Results</span>
             <br />
             <span className="text-2xl font-bold text-black">—</span>
           </div>
@@ -220,14 +445,14 @@ const Home = () => {
               quizzes.map((q) => (
                 <div
                   key={q._id}
-                  className="p-4 border border-gray-200 rounded-lg bg-white"
+                  className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm"
                 >
                   <h4 className="font-semibold text-black">{q.title}</h4>
-                  <p className="text-sm text-gray-700">{q.description}</p>
+                  <p className="text-sm text-gray-600">{q.description}</p>
                   <div className="mt-2 flex gap-2">
                     <Link
                       to={`/teacher`}
-                      className="border border-black text-black px-3 py-1 rounded-md text-sm hover:bg-gray-100 transition-colors"
+                      className="border border-gray-300 text-black px-3 py-1 rounded-md text-sm hover:bg-gray-100 transition-colors"
                     >
                       Edit
                     </Link>

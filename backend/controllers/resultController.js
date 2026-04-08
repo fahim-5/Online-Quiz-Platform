@@ -142,6 +142,15 @@ const submitResult = async (req, res, next) => {
           success: false,
           message: "Result already submitted or updated",
         });
+      // populate question details for review
+      try {
+        await updated.populate(
+          "answers.question",
+          "text options correctIndex points",
+        );
+      } catch (e) {
+        // ignore populate errors
+      }
       return res.status(200).json({ success: true, result: updated });
     }
 
@@ -158,6 +167,15 @@ const submitResult = async (req, res, next) => {
       duration: durationSec,
       takenAt: endedAt,
     });
+    // populate question details for review
+    try {
+      await created.populate(
+        "answers.question",
+        "text options correctIndex points",
+      );
+    } catch (e) {
+      // ignore populate errors
+    }
 
     return res.status(201).json({ success: true, result: created });
   } catch (err) {

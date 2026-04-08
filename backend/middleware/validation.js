@@ -15,6 +15,7 @@ export const handleValidationErrors = (req, res, next) => {
 // User validation rules
 export const validateUser = [
   body("id").trim().isLength({ min: 1 }).withMessage("ID is required"),
+  body("email").isEmail().withMessage("A valid email is required"),
   body("password")
     .isLength({ min: 4 })
     .withMessage("Password must be at least 4 characters long"),

@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema(
   {
     name: String,
     identifier: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: String,
     role: {
       type: String,
@@ -83,6 +84,7 @@ async function seed() {
   const admin = await User.create({
     name: "Admin User",
     identifier: "admin01",
+    email: "admin@example.com",
     password: pwdAdmin,
     // Use `teacher` role for seeded admin account to match platform convention
     role: "teacher",
@@ -90,12 +92,14 @@ async function seed() {
   const teacher = await User.create({
     name: "Teacher User",
     identifier: "teacher01",
+    email: "teacher@example.com",
     password: pwdTeacher,
     role: "teacher",
   });
   const student = await User.create({
     name: "Student User",
     identifier: "student01",
+    email: "student@example.com",
     password: pwdStudent,
     role: "student",
   });
@@ -191,6 +195,7 @@ async function seed() {
   const s2 = await User.create({
     name: "Student Two",
     identifier: "student02",
+    email: "student2@example.com",
     password: await bcrypt.hash("student2", 12),
     role: "student",
   });

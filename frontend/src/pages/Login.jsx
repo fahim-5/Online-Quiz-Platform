@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import api from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import logo from "../assets/images/logo.png";
 
 export default function Login() {
   const [id, setId] = useState("");
@@ -17,7 +18,12 @@ export default function Login() {
     setError(null);
     setLoading(true);
     try {
-      const res = await api.post("/auth/login", { id, password });
+      const input = id.trim();
+      const isEmail = /^\S+@\S+\.\S+$/.test(input);
+      const payload = isEmail
+        ? { email: input.toLowerCase(), password }
+        : { id: input, password };
+      const res = await api.post("/auth/login", payload);
 
       const token = res?.data?.token;
       const user = res?.data?.data?.user;
@@ -40,21 +46,32 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-md w-full p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
-        <h2 className="text-2xl font-bold text-black mb-6">Login</h2>
+        <div className="flex flex-col items-center mb-4">
+          <img src={logo} alt="Quizly" className="h-12 mb-2" />
+
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             value={id}
             onChange={(e) => setId(e.target.value)}
-            placeholder="ID"
+            placeholder="ID or email"
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
           />
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            type="password"
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-          />
+          <div className="relative">
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              type="password"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            />
+            <div className="absolute right-0 top-0 mt-2 mr-2 text-sm">
+              <Link to="/forgot" className="text-black underline">
+                Forgot?
+              </Link>
+            </div>
+          </div>
           {error && <div className="text-red-600 text-sm">{error}</div>}
           <button
             type="submit"
@@ -63,6 +80,12 @@ export default function Login() {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
+          <div className="text-center mt-3 text-sm">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-black font-medium underline">
+              Registration
+            </Link>
+          </div>
         </form>
       </div>
     </div>

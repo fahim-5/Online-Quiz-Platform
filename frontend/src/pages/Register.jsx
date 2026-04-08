@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import logo from "../assets/images/logo.png";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -12,6 +14,8 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,8 +38,8 @@ export default function Register() {
         password: form.password,
         role: form.role,
       });
-      // TODO: redirect to login or dashboard
-      alert("Registered");
+      // Show success modal then redirect to login on OK
+      setShowSuccess(true);
     } catch (err) {
       setError(
         err?.response?.data?.message || err.message || "Registration failed",
@@ -48,10 +52,12 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-md w-full p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
-        <h2 className="text-2xl font-bold text-black mb-6">Register</h2>
+        <div className="flex flex-col items-center mb-4">
+          <img src={logo} alt="Quizly" className="h-16" />
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="text-sm text-gray-700 font-medium">Name</span>
+            <span className="text-sm  text-gray-700 font-medium">Name</span>
             <input
               name="name"
               value={form.name}
@@ -148,11 +154,34 @@ export default function Register() {
           <div className="text-center mt-3 text-sm">
             Already have an account?{" "}
             <a href="/login" className="text-black font-medium underline">
-              Login now
+              Login
             </a>
           </div>
         </form>
       </div>
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white text-black rounded-lg shadow-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-semibold mb-2">
+              Registration successful
+            </h3>
+            <p className="text-sm mb-4">
+              Your account has been created successfully.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setShowSuccess(false);
+                  navigate("/login");
+                }}
+                className="px-4 py-2 bg-black text-white rounded-md"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
