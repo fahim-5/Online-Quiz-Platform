@@ -9,13 +9,17 @@ import {
   quizStats,
   participationSummary,
   exportLeaderboardCSV,
+  questionAnalysis,
+  getStudentReport,
+  exportReportPDF,
 } from "../controllers/resultController.js";
 import { protect, authorize } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/start", protect, startResult);
-router.post("/", protect, submitResult);
+// Allow guests to start and submit results (join by code) — authentication optional
+router.post("/start", startResult);
+router.post("/", submitResult);
 router.get("/user/:userId", protect, getResultsForUser);
 router.get("/me", protect, getMyResults);
 router.get("/me/summary", protect, getMySummary);
@@ -33,6 +37,18 @@ router.get(
   quizStats,
 );
 router.get(
+  "/teacher/quiz/:quizId/analysis",
+  protect,
+  authorize("teacher"),
+  questionAnalysis,
+);
+router.get(
+  "/teacher/quiz/:quizId/student/:studentId",
+  protect,
+  authorize("teacher"),
+  getStudentReport,
+);
+router.get(
   "/teacher/participation",
   protect,
   authorize("teacher"),
@@ -43,6 +59,13 @@ router.get(
   protect,
   authorize("teacher"),
   exportLeaderboardCSV,
+);
+
+router.get(
+  "/teacher/quiz/:quizId/export/pdf",
+  protect,
+  authorize("teacher"),
+  exportReportPDF,
 );
 
 export default router;

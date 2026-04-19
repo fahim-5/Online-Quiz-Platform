@@ -1,4 +1,7 @@
 import express from "express";
+import http from "http";
+import { Server as IOServer } from "socket.io";
+import { setIo } from "./utils/socket.js";
 import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
@@ -112,9 +115,32 @@ const connectDB = async () => {
       `\n${colors.cyan}🔄 Attempting to connect to MongoDB...${colors.reset}`,
     );
 
-    const conn = await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/express-mvc",
-    );
+    const uri =
+      process.env.MONGODB_URI || "mongodb://localhost:27017/express-mvc";
+
+    // Print masked URI for debugging (hides credentials)
+    try {
+      console.log(
+        "Using MongoDB URI:",
+        uri.replace(/(mongodb(?:\+srv)?:\/\/)(.*@)?(.+)/, "$1***@***"),
+      );
+    } catch (e) {
+      console.log("Using MongoDB URI: (unable to mask)");
+    }
+
+    // Build mongoose connect options. Modern driver no longer needs deprecated flags.
+    const mongooseOptions = {};
+
+    if (process.env.MONGO_TLS_INSECURE === "true") {
+      mongooseOptions.tls = true;
+      mongooseOptions.tlsAllowInvalidCertificates = true;
+      mongooseOptions.tlsAllowInvalidHostnames = true;
+      console.log(
+        "Warning: TLS certificate validation is disabled for MongoDB (debug)",
+      );
+    }
+
+    const conn = await mongoose.connect(uri, mongooseOptions);
 
     console.log(
       `\n${colors.green}✅ ${colors.bright}MongoDB Connected Successfully!${colors.reset}`,
@@ -160,7 +186,24 @@ const startServer = async () => {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         await new Promise((resolve, reject) => {
-          const server = app.listen(currentPort, () => {
+          const httpServer = http.createServer(app);
+          const io = new IOServer(httpServer, {
+            cors: { origin: CLIENT_URL, credentials: true },
+          });
+
+          // Save io for controllers
+          setIo(io);
+
+          io.on("connection", (socket) => {
+            // join a quiz room when requested by client
+            socket.on("monitor:join", (quizId) => {
+              try {
+                socket.join(`quiz-${quizId}`);
+              } catch (e) {}
+            });
+          });
+
+          const server = httpServer.listen(currentPort, () => {
             console.log(
               `\n${colors.green}🚀 ${colors.bright}Server Started Successfully!${colors.reset}`,
             );

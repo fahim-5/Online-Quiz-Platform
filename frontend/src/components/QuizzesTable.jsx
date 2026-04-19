@@ -5,6 +5,9 @@ export default function QuizzesTable({
   onEdit = () => {},
   onDelete = () => {},
   onManage = () => {},
+  onCopy = () => {},
+  onMonitor = () => {},
+  onReport = () => {},
 }) {
   return (
     <div>
@@ -44,6 +47,24 @@ export default function QuizzesTable({
                   onClick={() => onEdit(q)}
                 >
                   Edit
+                </button>
+                <button
+                  className="text-sm text-yellow-600"
+                  onClick={() => onCopy(q)}
+                >
+                  Copy
+                </button>
+                <button
+                  className="text-sm text-indigo-600"
+                  onClick={() => onMonitor(q)}
+                >
+                  Monitor
+                </button>
+                <button
+                  className="text-sm text-purple-600"
+                  onClick={() => onReport(q)}
+                >
+                  Reports
                 </button>
                 <button
                   className="text-sm text-red-600"

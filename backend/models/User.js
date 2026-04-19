@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    email: {
+      type: String,
+      required: [true, "Please provide an email"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      index: true,
+    },
     password: {
       type: String,
       required: [true, "Please provide a password"],
@@ -25,6 +33,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["student", "teacher"],
       default: "student",
+    },
+    institution: {
+      type: String,
+      trim: true,
+      maxlength: [100, "Institution name cannot be more than 100 characters"],
     },
     avatar: {
       type: String,

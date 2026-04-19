@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import Timer from "../components/Timer";
 
 export default function TakeQuiz() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [quiz, setQuiz] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -30,12 +32,6 @@ export default function TakeQuiz() {
     load();
   }, [id]);
 
-  // No automatic draft on mount. User must press Start when allowed.
-
-  const handleSelect = (questionId, optionIndex) => {
-    setAnswers((a) => ({ ...a, [questionId]: optionIndex }));
-  };
-
   const submitAnswers = async () => {
     const payload = {
       quiz: id,
@@ -49,6 +45,11 @@ export default function TakeQuiz() {
     };
 
     try {
+      const guestName =
+        location.state && location.state.guestName
+          ? location.state.guestName
+          : undefined;
+      if (guestName) payload.guestName = guestName;
       const res = await api.post("/results", payload);
       const result = res.data.result || res.data;
       navigate("/result", {
@@ -62,7 +63,10 @@ export default function TakeQuiz() {
       console.error(err);
     }
   };
-  if (loading) return <div>Loading quiz...</div>;
+
+  const handleSelect = (questionId, optionIndex) => {
+    setAnswers((a) => ({ ...a, [questionId]: optionIndex }));
+  };
 
   const [canStart, setCanStart] = useState(false);
   const [countdownToStart, setCountdownToStart] = useState(null);
@@ -88,7 +92,13 @@ export default function TakeQuiz() {
   const startQuiz = async () => {
     try {
       setLoading(true);
-      const res = await api.post(`/results/start`, { quiz: id });
+      const guestName =
+        location.state && location.state.guestName
+          ? location.state.guestName
+          : undefined;
+      const payload = { quiz: id };
+      if (guestName) payload.guestName = guestName;
+      const res = await api.post(`/results/start`, payload);
       const draft = res.data.result || res.data;
       if (draft && draft._id)
         setAnswers((a) => ({ ...a, __resultId: draft._id }));
@@ -96,9 +106,10 @@ export default function TakeQuiz() {
       setExamSeconds(quiz?.timeLimit || 300);
     } catch (err) {
       console.error("Failed to create draft result:", err);
-      setError(
-        err?.response?.data?.message || err.message || "Cannot start quiz",
-      );
+      const msg =
+        err?.response?.data?.message || err.message || "Cannot start quiz";
+      setError(msg);
+      // Do not redirect unauthenticated guests to login; show error only
     } finally {
       setLoading(false);
     }
@@ -106,68 +117,118 @@ export default function TakeQuiz() {
 
   return (
     <div className="page take-quiz-page p-6">
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold">{quiz?.title || "Quiz"}</h2>
-        {!started && (
-          <div className="mt-2">
-            {countdownToStart ? (
-              <div>
-                <div>Quiz opens in:</div>
-                <Timer
-                  initialSeconds={countdownToStart}
-                  onExpire={() => setCanStart(true)}
+      {error && (
+        <div className="max-w-7xl mx-auto mb-4 p-3 bg-red-50 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+      {/* Header with title, progress and timer/submit */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">{quiz?.title || "Quiz"}</h2>
+            <div className="mt-2 flex items-center gap-4">
+              <div className="text-sm text-gray-600">
+                {Object.keys(answers).filter((k) => k !== "__resultId").length}{" "}
+                of {questions.length} answered
+              </div>
+              <div className="w-48 bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="h-2 bg-blue-700"
+                  style={{
+                    width: `${questions.length ? (Object.keys(answers).filter((k) => k !== "__resultId").length / questions.length) * 100 : 0}%`,
+                  }}
                 />
-                <div className="text-sm text-gray-500">
-                  You will be able to open the quiz when the timer ends.
-                </div>
               </div>
-            ) : (
-              <div>
-                <div className="text-sm text-gray-500">
-                  You can start this quiz now.
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div>
+              {!started && countdownToStart ? (
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-gray-600">Opens in</div>
+                  <Timer
+                    initialSeconds={countdownToStart}
+                    onExpire={() => setCanStart(true)}
+                  />
                 </div>
-                <button
-                  onClick={startQuiz}
-                  className="btn-primary mt-2"
-                  disabled={!canStart || loading}
-                >
-                  Start Quiz
-                </button>
-              </div>
+              ) : !started ? (
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-gray-600">Ready to start</div>
+                  <button
+                    onClick={startQuiz}
+                    className="px-4 py-2 bg-blue-900 text-white rounded shadow"
+                    disabled={!canStart || loading}
+                  >
+                    Start Quiz
+                  </button>
+                </div>
+              ) : (
+                <Timer initialSeconds={examSeconds} onExpire={submitAnswers} />
+              )}
+            </div>
+
+            {started && (
+              <button
+                onClick={submitAnswers}
+                className="px-4 py-2 bg-black text-white rounded"
+              >
+                Submit Quiz
+              </button>
             )}
           </div>
-        )}
-        {started && (
-          <Timer initialSeconds={examSeconds} onExpire={submitAnswers} />
-        )}
+        </div>
       </div>
 
       {started && (
         <div className="space-y-6">
           {questions.map((q, idx) => (
-            <div key={q._id} className="p-4 border rounded">
-              <div className="font-semibold">
-                {idx + 1}. {q.text}
+            <div key={q._id} className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-700">
+                    Question {idx + 1}
+                  </div>
+                  <div className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-700">
+                    {quiz?.category || q.category || "General"}
+                  </div>
+                </div>
+                <div className="text-sm text-gray-500">
+                  {q.points || 1} points
+                </div>
               </div>
-              <div className="mt-2 space-y-1">
+
+              <div className="mt-3 font-semibold text-gray-800">{q.text}</div>
+
+              <div className="mt-4 space-y-3">
                 {(q.options || []).map((opt, oi) => (
-                  <label key={oi} className="flex items-center gap-2">
+                  <label
+                    key={oi}
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:shadow-sm"
+                  >
                     <input
                       type="radio"
                       name={q._id}
                       checked={answers[q._id] === oi}
                       onChange={() => handleSelect(q._id, oi)}
+                      className="h-4 w-4"
                     />
-                    <span>{opt.text}</span>
+                    <div className="text-gray-700">{opt.text}</div>
                   </label>
                 ))}
               </div>
             </div>
           ))}
 
-          <div className="mt-4">
-            <button onClick={submitAnswers} className="btn-primary">
-              Submit
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={submitAnswers}
+              className="px-6 py-3 bg-black text-white rounded-lg text-lg"
+            >
+              Submit Quiz (
+              {Object.keys(answers).filter((k) => k !== "__resultId").length}/
+              {questions.length} answered)
             </button>
           </div>
         </div>

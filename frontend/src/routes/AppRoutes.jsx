@@ -6,10 +6,14 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Dashboard from "../pages/Dashboard";
 import TakeQuiz from "../pages/TakeQuiz";
+import Join from "../pages/Join";
 import Result from "../pages/Result";
 import AdminPanel from "../pages/AdminPanel";
 import ManageQuestions from "../pages/ManageQuestions";
+import QuizEditor from "../pages/QuizEditor";
+import LiveMonitor from "../pages/LiveMonitor";
 import ResultsHistory from "../pages/ResultsHistory";
+import Reports from "../pages/Reports";
 
 export default function AppRoutes() {
   return (
@@ -18,12 +22,16 @@ export default function AppRoutes() {
       <Route path="/about" element={<About />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/join" element={<Join />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/quiz/:id" element={<TakeQuiz />} />
       <Route path="/result" element={<Result />} />
       <Route path="/results" element={<ResultsHistory />} />
       <Route path="/teacher" element={<AdminPanel />} />
+      <Route path="/teacher/create" element={<QuizEditor />} />
+      <Route path="/teacher/monitor/:id" element={<LiveMonitor />} />
       <Route path="/teacher/quiz/:id" element={<ManageQuestions />} />
+      <Route path="/teacher/reports/:quizId" element={<Reports />} />
     </Routes>
   );
 }

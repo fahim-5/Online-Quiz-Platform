@@ -2,11 +2,14 @@ import mongoose from "mongoose";
 import Result from "../models/Result.js";
 import Question from "../models/Question.js";
 import Quiz from "../models/Quiz.js";
+import PDFDocument from "pdfkit";
+import stream from "stream";
 
 // Create a draft result when a user starts a quiz. Records startedAt.
 const startResult = async (req, res, next) => {
   try {
-    const user = req.user && req.user.id ? req.user.id : req.body.user;
+    const user = req.user && req.user.id ? req.user.id : undefined;
+    const guestName = req.body.guestName || undefined;
     const { quiz } = req.body;
     // Enforce scheduled start time when present
     const quizDoc = await Quiz.findById(quiz);
@@ -24,12 +27,15 @@ const startResult = async (req, res, next) => {
       }
     }
 
-    const draft = await Result.create({
-      user,
+    const draftPayload = {
       quiz,
       startedAt: new Date(),
       status: "in-progress",
-    });
+    };
+    if (user) draftPayload.user = user;
+    else if (guestName) draftPayload.guestName = guestName;
+
+    const draft = await Result.create(draftPayload);
     res.status(201).json({ success: true, result: draft });
   } catch (err) {
     next(err);
@@ -40,8 +46,9 @@ const startResult = async (req, res, next) => {
 // Accepts optional `resultId` to validate startedAt/timeLimit.
 const submitResult = async (req, res, next) => {
   try {
-    // Expect body: { quiz: quizId, answers: [{ question: questionId, answerIndex: Number }], resultId }
-    const user = req.user && req.user.id ? req.user.id : req.body.user;
+    // Expect body: { quiz: quizId, answers: [{ question: questionId, answerIndex: Number }], resultId, guestName }
+    const user = req.user && req.user.id ? req.user.id : undefined;
+    const guestName = req.body.guestName || undefined;
     const { quiz, answers = [], resultId } = req.body;
 
     // Sanitize answers
@@ -66,6 +73,10 @@ const submitResult = async (req, res, next) => {
           .status(400)
           .json({ success: false, message: "Result already submitted" });
       quizId = draft.quiz.toString();
+      // if draft has guestName, prefer it
+      if (draft.guestName) {
+        // keep guestName for submission
+      }
 
       // enforce time limit
       const quizDoc = await Quiz.findById(quizId);
@@ -142,12 +153,20 @@ const submitResult = async (req, res, next) => {
           success: false,
           message: "Result already submitted or updated",
         });
+      // populate question details for review
+      try {
+        await updated.populate(
+          "answers.question",
+          "text options correctIndex points",
+        );
+      } catch (e) {
+        // ignore populate errors
+      }
       return res.status(200).json({ success: true, result: updated });
     }
 
-    // No draft: create a completed result
-    const created = await Result.create({
-      user,
+    // No draft: create a completed result (guest or authenticated)
+    const createPayload = {
       quiz: quizId,
       score,
       total: totalPossible,
@@ -157,7 +176,20 @@ const submitResult = async (req, res, next) => {
       endedAt,
       duration: durationSec,
       takenAt: endedAt,
-    });
+    };
+    if (user) createPayload.user = user;
+    else if (guestName) createPayload.guestName = guestName;
+
+    const created = await Result.create(createPayload);
+    // populate question details for review
+    try {
+      await created.populate(
+        "answers.question",
+        "text options correctIndex points",
+      );
+    } catch (e) {
+      // ignore populate errors
+    }
 
     return res.status(201).json({ success: true, result: created });
   } catch (err) {
@@ -515,3 +547,241 @@ export {
   participationSummary,
   exportLeaderboardCSV,
 };
+
+// Additional reports: question analysis and PDF export
+const questionAnalysis = async (req, res, next) => {
+  try {
+    const quizId = req.params.quizId;
+    const results = await Result.find({
+      quiz: quizId,
+      status: "completed",
+    }).lean();
+    const questions = await Question.find({ quiz: quizId }).lean();
+
+    const qMap = {};
+    questions.forEach((q) => {
+      qMap[q._id.toString()] = { question: q, total: 0, correct: 0 };
+    });
+
+    for (const r of results) {
+      for (const a of r.answers || []) {
+        const qid = String(a.question);
+        if (!qMap[qid]) continue;
+        qMap[qid].total += 1;
+        // determine correctness
+        const q = qMap[qid].question;
+        let correct = false;
+        if (
+          (q.type === "mcq" || q.type === "tf") &&
+          typeof a.answerIndex !== "undefined"
+        ) {
+          correct = Number(a.answerIndex) === Number(q.correctIndex);
+        } else if (q.type === "short" && q.answerText) {
+          correct =
+            String(a.answer || "")
+              .trim()
+              .toLowerCase() ===
+            String(q.answerText || "")
+              .trim()
+              .toLowerCase();
+        }
+        if (correct) qMap[qid].correct += 1;
+      }
+    }
+
+    const analysis = Object.keys(qMap).map((qid) => {
+      const item = qMap[qid];
+      const percent = item.total
+        ? Math.round((item.correct / item.total) * 100)
+        : 0;
+      let difficulty = "medium";
+      if (percent >= 80) difficulty = "easy";
+      else if (percent < 50) difficulty = "hard";
+      return {
+        questionId: qid,
+        text: item.question.text,
+        total: item.total,
+        correct: item.correct,
+        percent,
+        difficulty,
+      };
+    });
+
+    // overall class average (avg percent across results)
+    const totalPossible = results.reduce((acc, r) => acc + (r.total || 0), 0);
+    const totalScore = results.reduce((acc, r) => acc + (r.score || 0), 0);
+    const classAvgPercent = totalPossible
+      ? Math.round((totalScore / totalPossible) * 100 * 100) / 100
+      : 0;
+
+    // top 5 performers (by bestScore)
+    const leaderboard = await leaderboardForQuizInternal(quizId, 5);
+
+    res.json({
+      success: true,
+      classAvgPercent,
+      analysis,
+      topPerformers: leaderboard,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// helper to return top performers without Express req/res
+const leaderboardForQuizInternal = async (quizId, limit = 5) => {
+  const agg = await Result.aggregate([
+    {
+      $match: {
+        quiz: new mongoose.Types.ObjectId(quizId),
+        status: "completed",
+      },
+    },
+    {
+      $group: {
+        _id: "$user",
+        bestScore: { $max: "$score" },
+        total: { $max: "$total" },
+        lastTaken: { $max: "$takenAt" },
+      },
+    },
+    { $sort: { bestScore: -1 } },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+    {
+      $project: {
+        name: "$user.name",
+        identifier: "$user.identifier",
+        bestScore: 1,
+        total: 1,
+        lastTaken: 1,
+      },
+    },
+  ]);
+  return agg;
+};
+
+const exportReportPDF = async (req, res, next) => {
+  try {
+    const quizId = req.params.quizId;
+    const analysisRes = await (async () => {
+      const results = await Result.find({
+        quiz: quizId,
+        status: "completed",
+      }).lean();
+      const questions = await Question.find({ quiz: quizId }).lean();
+      const qMap = {};
+      questions.forEach((q) => {
+        qMap[q._id.toString()] = { question: q, total: 0, correct: 0 };
+      });
+      for (const r of results) {
+        for (const a of r.answers || []) {
+          const qid = String(a.question);
+          if (!qMap[qid]) continue;
+          qMap[qid].total += 1;
+          const q = qMap[qid].question;
+          let correct = false;
+          if (
+            (q.type === "mcq" || q.type === "tf") &&
+            typeof a.answerIndex !== "undefined"
+          ) {
+            correct = Number(a.answerIndex) === Number(q.correctIndex);
+          } else if (q.type === "short" && q.answerText) {
+            correct =
+              String(a.answer || "")
+                .trim()
+                .toLowerCase() ===
+              String(q.answerText || "")
+                .trim()
+                .toLowerCase();
+          }
+          if (correct) qMap[qid].correct += 1;
+        }
+      }
+      const analysis = Object.keys(qMap).map((qid) => {
+        const item = qMap[qid];
+        const percent = item.total
+          ? Math.round((item.correct / item.total) * 100)
+          : 0;
+        return {
+          questionId: qid,
+          text: item.question.text,
+          total: item.total,
+          correct: item.correct,
+          percent,
+        };
+      });
+      const totalPossible = results.reduce((acc, r) => acc + (r.total || 0), 0);
+      const totalScore = results.reduce((acc, r) => acc + (r.score || 0), 0);
+      const classAvgPercent = totalPossible
+        ? Math.round((totalScore / totalPossible) * 100 * 100) / 100
+        : 0;
+      return { analysis, classAvgPercent };
+    })();
+
+    // build PDF
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    const filename = `report_${quizId}.pdf`;
+    res.setHeader("Content-disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-type", "application/pdf");
+
+    doc.fontSize(20).text(`Quiz Report`, { align: "center" });
+    doc.moveDown();
+    doc.fontSize(12).text(`Class average: ${analysisRes.classAvgPercent}%`);
+    doc.moveDown();
+    doc.fontSize(14).text("Question Analysis:");
+    doc.moveDown(0.5);
+    analysisRes.analysis.forEach((q, idx) => {
+      doc.fontSize(12).text(`${idx + 1}. ${q.text}`);
+      doc
+        .fontSize(10)
+        .text(
+          `   Attempts: ${q.total}  Correct: ${q.correct}  %Correct: ${q.percent}%`,
+        );
+      doc.moveDown(0.3);
+    });
+
+    doc.end();
+    const passthrough = new stream.PassThrough();
+    doc.pipe(passthrough);
+    passthrough.pipe(res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// expose new functions
+export { questionAnalysis, exportReportPDF };
+
+const getStudentReport = async (req, res, next) => {
+  try {
+    const { quizId, studentId } = req.params;
+    // studentId is expected to be ObjectId of User
+    const query = { quiz: quizId, status: "completed" };
+    // if studentId looks like an object id, filter by user field
+    if (studentId && mongoose.Types.ObjectId.isValid(studentId)) {
+      query.user = new mongoose.Types.ObjectId(studentId);
+    } else {
+      // otherwise treat as guestName
+      query.guestName = studentId;
+    }
+
+    const results = await Result.find(query)
+      .populate("answers.question", "text options correctIndex points")
+      .sort({ takenAt: -1 })
+      .lean();
+    res.json({ success: true, results });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { getStudentReport };

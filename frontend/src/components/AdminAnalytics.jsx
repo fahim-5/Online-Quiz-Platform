@@ -58,15 +58,15 @@ export default function TeacherAnalytics() {
     loadQuiz();
   }, [selectedQuiz]);
 
-  if (loading) return <div>Loading analytics...</div>;
+  if (loading) return <div className="text-black">Loading analytics...</div>;
 
   return (
-    <div className="admin-analytics p-4 border rounded bg-white">
-      <h3 className="text-lg font-semibold mb-3">Participation & Scores</h3>
+    <div className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+      <h3 className="text-lg font-semibold text-black mb-3">Participation & Scores</h3>
       <div className="mb-3">
-        <label className="block text-sm font-medium">Quiz</label>
+        <label className="block text-sm font-medium text-black">Quiz</label>
         <select
-          className="w-full border p-2"
+          className="w-full border border-gray-300 rounded-md p-2 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
           value={selectedQuiz || ""}
           onChange={(e) => setSelectedQuiz(e.target.value)}
         >
@@ -80,32 +80,32 @@ export default function TeacherAnalytics() {
 
       <div className="mb-3 grid grid-cols-3 gap-2">
         <div>
-          <label className="block text-sm">Start Date</label>
+          <label className="block text-sm text-black">Start Date</label>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="w-full border p-2"
+            className="w-full border border-gray-300 rounded-md p-2 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
           />
         </div>
         <div>
-          <label className="block text-sm">End Date</label>
+          <label className="block text-sm text-black">End Date</label>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-full border p-2"
+            className="w-full border border-gray-300 rounded-md p-2 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
           />
         </div>
         <div>
-          <label className="block text-sm">Per page</label>
+          <label className="block text-sm text-black">Per page</label>
           <select
             value={limit}
             onChange={(e) => {
               setLimit(Number(e.target.value));
               setPage(0);
             }}
-            className="w-full border p-2"
+            className="w-full border border-gray-300 rounded-md p-2 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
           >
             <option value={5}>5</option>
             <option value={10}>10</option>
@@ -116,7 +116,7 @@ export default function TeacherAnalytics() {
 
       <div className="mb-3 flex gap-2">
         <button
-          className="btn-primary"
+          className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
           onClick={() => {
             setPage(0);
             /* reload effect */ setSelectedQuiz((s) => s);
@@ -125,7 +125,7 @@ export default function TeacherAnalytics() {
           Apply
         </button>
         <button
-          className="btn-secondary"
+          className="border border-black text-black px-4 py-2 rounded-md hover:bg-gray-100 transition-colors"
           onClick={async () => {
             if (!selectedQuiz) return;
             const params = new URLSearchParams();
@@ -149,37 +149,37 @@ export default function TeacherAnalytics() {
       </div>
 
       {quizStats && (
-        <div className="mb-3 p-3 bg-gray-50 border rounded">
-          <div>
+        <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="text-black">
             <strong>Attempts:</strong> {quizStats.attempts}
           </div>
-          <div>
+          <div className="text-black">
             <strong>Average %:</strong> {quizStats.avgPercent}%
           </div>
-          <div>
+          <div className="text-black">
             <strong>Top Score:</strong> {quizStats.topScore}
           </div>
         </div>
       )}
 
       <div>
-        <h4 className="font-semibold mb-2">Leaderboard</h4>
-        {leaderboard.length === 0 && <div>No entries yet.</div>}
+        <h4 className="font-semibold text-black mb-2">Leaderboard</h4>
+        {leaderboard.length === 0 && <div className="text-gray-700">No entries yet.</div>}
         <ol className="list-decimal pl-6">
           {leaderboard.map((e, i) => (
             <li key={i} className="mb-2">
               <div className="flex justify-between">
                 <div>
-                  <div className="font-medium">{e.user?.name || "Unknown"}</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="font-medium text-black">{e.user?.name || "Unknown"}</div>
+                  <div className="text-sm text-gray-700">
                     {e.user?.identifier || ""}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div>
+                  <div className="text-black">
                     {e.bestScore} / {e.total}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-600">
                     {e.lastTaken ? new Date(e.lastTaken).toLocaleString() : ""}
                   </div>
                 </div>
@@ -187,17 +187,17 @@ export default function TeacherAnalytics() {
             </li>
           ))}
         </ol>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex gap-2 items-center">
           <button
-            className="btn"
+            className="border border-gray-300 text-black px-3 py-1 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={page === 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
           >
             Prev
           </button>
-          <div className="px-2">Page {page + 1}</div>
+          <div className="px-2 text-black">Page {page + 1}</div>
           <button
-            className="btn"
+            className="border border-gray-300 text-black px-3 py-1 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={leaderboard.length < limit}
             onClick={() => setPage((p) => p + 1)}
           >
