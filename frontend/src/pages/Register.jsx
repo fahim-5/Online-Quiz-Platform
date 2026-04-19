@@ -11,6 +11,7 @@ export default function Register() {
     password: "",
     confirmPassword: "",
     role: "student",
+    institution: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -25,18 +26,25 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!form.id || !form.password || !form.email)
-      return setError("ID, email and password are required");
+    if (!form.email || !form.password)
+      return setError("Email and password are required");
     if (form.password !== form.confirmPassword)
       return setError("Passwords do not match");
     setLoading(true);
     try {
+      // If ID not provided, use email as identifier to satisfy backend requirement
+      const identifier =
+        form.id && form.id.trim()
+          ? form.id.trim()
+          : form.email.trim().toLowerCase();
+
       await api.post("/auth/register", {
         name: form.name,
-        id: form.id,
+        id: identifier,
         email: form.email,
         password: form.password,
         role: form.role,
+        institution: form.institution || undefined,
       });
       // Show success modal then redirect to login on OK
       setShowSuccess(true);
@@ -63,6 +71,19 @@ export default function Register() {
               value={form.name}
               onChange={handleChange}
               placeholder="Full name"
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm text-gray-700 font-medium">
+              Institution (optional)
+            </span>
+            <input
+              name="institution"
+              value={form.institution}
+              onChange={handleChange}
+              placeholder="Institution name (for teachers)"
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </label>

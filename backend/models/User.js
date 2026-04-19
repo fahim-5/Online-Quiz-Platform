@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "teacher"],
       default: "student",
     },
+    institution: {
+      type: String,
+      trim: true,
+      maxlength: [100, "Institution name cannot be more than 100 characters"],
+    },
     avatar: {
       type: String,
       default: "default-avatar.jpg",

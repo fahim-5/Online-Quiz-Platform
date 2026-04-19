@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import Timer from "../components/Timer";
 
 export default function TakeQuiz() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [quiz, setQuiz] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -30,12 +32,6 @@ export default function TakeQuiz() {
     load();
   }, [id]);
 
-  // No automatic draft on mount. User must press Start when allowed.
-
-  const handleSelect = (questionId, optionIndex) => {
-    setAnswers((a) => ({ ...a, [questionId]: optionIndex }));
-  };
-
   const submitAnswers = async () => {
     const payload = {
       quiz: id,
@@ -49,6 +45,11 @@ export default function TakeQuiz() {
     };
 
     try {
+      const guestName =
+        location.state && location.state.guestName
+          ? location.state.guestName
+          : undefined;
+      if (guestName) payload.guestName = guestName;
       const res = await api.post("/results", payload);
       const result = res.data.result || res.data;
       navigate("/result", {
@@ -62,7 +63,10 @@ export default function TakeQuiz() {
       console.error(err);
     }
   };
-  if (loading) return <div>Loading quiz...</div>;
+
+  const handleSelect = (questionId, optionIndex) => {
+    setAnswers((a) => ({ ...a, [questionId]: optionIndex }));
+  };
 
   const [canStart, setCanStart] = useState(false);
   const [countdownToStart, setCountdownToStart] = useState(null);
@@ -88,7 +92,13 @@ export default function TakeQuiz() {
   const startQuiz = async () => {
     try {
       setLoading(true);
-      const res = await api.post(`/results/start`, { quiz: id });
+      const guestName =
+        location.state && location.state.guestName
+          ? location.state.guestName
+          : undefined;
+      const payload = { quiz: id };
+      if (guestName) payload.guestName = guestName;
+      const res = await api.post(`/results/start`, payload);
       const draft = res.data.result || res.data;
       if (draft && draft._id)
         setAnswers((a) => ({ ...a, __resultId: draft._id }));
@@ -96,9 +106,10 @@ export default function TakeQuiz() {
       setExamSeconds(quiz?.timeLimit || 300);
     } catch (err) {
       console.error("Failed to create draft result:", err);
-      setError(
-        err?.response?.data?.message || err.message || "Cannot start quiz",
-      );
+      const msg =
+        err?.response?.data?.message || err.message || "Cannot start quiz";
+      setError(msg);
+      // Do not redirect unauthenticated guests to login; show error only
     } finally {
       setLoading(false);
     }
@@ -106,6 +117,11 @@ export default function TakeQuiz() {
 
   return (
     <div className="page take-quiz-page p-6">
+      {error && (
+        <div className="max-w-7xl mx-auto mb-4 p-3 bg-red-50 text-red-700 rounded">
+          {error}
+        </div>
+      )}
       {/* Header with title, progress and timer/submit */}
       <div className="mb-6">
         <div className="flex items-center justify-between">

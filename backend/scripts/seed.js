@@ -64,10 +64,7 @@ const Question =
 const Result = mongoose.models.Result || mongoose.model("Result", ResultSchema);
 
 async function seed() {
-  await mongoose.connect(MONGO, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(MONGO);
   console.log("Connected to", MONGO);
 
   // Clear existing data (for idempotent seed)

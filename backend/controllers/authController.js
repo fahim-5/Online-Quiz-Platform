@@ -30,7 +30,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { id, email, password, role, name } = req.body;
+    const { id, email, password, role, name, institution } = req.body;
 
     if (!id || !password || !email)
       return next(
@@ -54,6 +54,7 @@ export const register = async (req, res, next) => {
       email: email.toLowerCase(),
       password,
       role: role || "student",
+      institution: institution || undefined,
     });
 
     sendTokenResponse(user, 201, res);

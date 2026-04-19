@@ -9,10 +9,7 @@ const MONGO =
   "mongodb://127.0.0.1:27017/onlinequiz";
 
 async function main() {
-  await mongoose.connect(MONGO, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(MONGO);
   console.log("Connected to", MONGO);
 
   // Load User model (use app model to respect schema)

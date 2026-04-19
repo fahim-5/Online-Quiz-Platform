@@ -8,7 +8,7 @@ import UsersTable from "../components/UsersTable";
 import TeacherAnalytics from "../components/AdminAnalytics";
 
 export default function AdminPanel() {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -16,16 +16,8 @@ export default function AdminPanel() {
   const [stats, setStats] = useState({ users: 0, quizzes: 0, results: 0 });
   const [users, setUsers] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
+  const [results, setResults] = useState([]);
   const [lastDeleted, setLastDeleted] = useState(null); // { id, title }
-  const [showCreate, setShowCreate] = useState(false);
-  const [newQuiz, setNewQuiz] = useState({
-    title: "",
-    description: "",
-    timeLimit: 300,
-    rules: "",
-    visibleFrom: "",
-    startFrom: "",
-  });
 
   useEffect(() => {
     if (!user) return; // wait for auth
@@ -66,8 +58,9 @@ export default function AdminPanel() {
       }
 
       if (resultsRes.status === "fulfilled") {
-        // results endpoint might return array or object with meta
         const data = resultsRes.value.data;
+        const list = Array.isArray(data) ? data : data?.results || [];
+        setResults(list || []);
         const count = Array.isArray(data) ? data.length : data.count || 0;
         setStats((s) => ({ ...s, results: count }));
       }
@@ -117,15 +110,35 @@ export default function AdminPanel() {
       setLoading(true);
       await api.delete(`/quizzes/${quiz._id || quiz.id}`);
       setLastDeleted({ id: quiz._id || quiz.id, title: quiz.title });
-      // refresh list to reflect removal
       await fetchAll();
-      // clear undo option after 30s
       setTimeout(() => setLastDeleted(null), 30000);
     } catch (err) {
       setError(err?.response?.data?.message || err.message || "Delete failed");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopyTemplate = async (quiz) => {
+    if (!confirm(`Create a copy of "${quiz.title}"?`)) return;
+    try {
+      setLoading(true);
+      const res = await api.post(`/quizzes/${quiz._id || quiz.id}/duplicate`);
+      await fetchAll();
+      alert(`Created copy: ${res.data.quiz.title}`);
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message || "Copy failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenMonitor = (quiz) => {
+    navigate(`/teacher/monitor/${quiz._id || quiz.id}`);
+  };
+
+  const handleOpenReports = (quiz) => {
+    navigate(`/teacher/reports/${quiz._id || quiz.id}`);
   };
 
   const handleUndo = async () => {
@@ -171,35 +184,19 @@ export default function AdminPanel() {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="bg-white min-h-screen p-6">
-        <h2 className="text-2xl font-bold text-black mb-4">Teacher Panel</h2>
-        <p className="mb-4 text-gray-700">Please log in to access the teacher panel.</p>
-        <button
-          className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
-          onClick={() => navigate("/login")}
-        >
-          Go to Login
-        </button>
-      </div>
-    );
-  }
-
-  if (user.role !== "teacher") {
-    return (
-      <div className="bg-white min-h-screen p-6">
-        <h2 className="text-2xl font-bold text-black mb-4">Teacher Panel</h2>
-        <p className="text-red-600">Access denied — teacher role required.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white min-h-screen p-6">
+      {/* Header: welcome, date, logout */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-black">Teacher Panel</h2>
         <div>
+          <h2 className="text-2xl font-bold text-black">
+            Welcome, {user?.name || user?.email || "Teacher"}
+          </h2>
+          <div className="text-sm text-gray-600">
+            {new Date().toLocaleDateString()}
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
           <button
             className="border border-gray-300 text-black px-3 py-1 rounded-md mr-2 hover:bg-gray-100 transition-colors"
             onClick={fetchAll}
@@ -209,102 +206,59 @@ export default function AdminPanel() {
           </button>
           <button
             className="bg-black text-white px-3 py-1 rounded-md hover:bg-gray-800 transition-colors"
-            onClick={() => setShowCreate((s) => !s)}
+            onClick={() => navigate("/teacher/create")}
           >
-            {showCreate ? "Cancel" : "Create Quiz"}
+            Create Quiz
+          </button>
+          <button
+            className="text-sm px-3 py-1 border border-gray-200 rounded-md hover:bg-gray-50"
+            onClick={() => logout && logout()}
+          >
+            Logout
           </button>
         </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <button
+          onClick={() => navigate("/teacher/create")}
+          className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:shadow-sm"
+        >
+          <span className="text-2xl">➕</span>
+          <div className="text-left">
+            <div className="font-semibold">Create New Quiz</div>
+            <div className="text-sm text-gray-600">Start a quiz quickly</div>
+          </div>
+        </button>
+        <button
+          onClick={() => navigate("/reports")}
+          className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:shadow-sm"
+        >
+          <span className="text-2xl">📊</span>
+          <div className="text-left">
+            <div className="font-semibold">View Reports</div>
+            <div className="text-sm text-gray-600">Analytics & CSV exports</div>
+          </div>
+        </button>
+        <button
+          onClick={() => navigate("/teacher/students")}
+          className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:shadow-sm"
+        >
+          <span className="text-2xl">👥</span>
+          <div className="text-left">
+            <div className="font-semibold">Manage Students</div>
+            <div className="text-sm text-gray-600">
+              Invite or remove students
+            </div>
+          </div>
+        </button>
       </div>
 
       {loading && <p className="text-black">Loading teacher data...</p>}
       {error && <p className="text-red-600">{error}</p>}
 
       <DashboardStats stats={stats} />
-
-      {showCreate && (
-        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
-          <h3 className="text-lg font-semibold text-black mb-2">Create New Quiz</h3>
-          <form onSubmit={handleCreateQuiz} className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-black">Title</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                value={newQuiz.title}
-                onChange={(e) =>
-                  setNewQuiz((n) => ({ ...n, title: e.target.value }))
-                }
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-black">Description</label>
-              <textarea
-                className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                value={newQuiz.description}
-                onChange={(e) =>
-                  setNewQuiz((n) => ({ ...n, description: e.target.value }))
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-black">
-                  Duration (seconds)
-                </label>
-                <input
-                  type="number"
-                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  value={newQuiz.timeLimit}
-                  onChange={(e) =>
-                    setNewQuiz((n) => ({ ...n, timeLimit: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black">Rules</label>
-                <input
-                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  value={newQuiz.rules}
-                  onChange={(e) =>
-                    setNewQuiz((n) => ({ ...n, rules: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div>
-                <label className="block text-sm font-medium text-black">
-                  Visible From
-                </label>
-                <input
-                  type="datetime-local"
-                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  value={newQuiz.visibleFrom}
-                  onChange={(e) =>
-                    setNewQuiz((n) => ({ ...n, visibleFrom: e.target.value }))
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black">Start From</label>
-                <input
-                  type="datetime-local"
-                  className="w-full border border-gray-300 rounded-md px-2 py-1 text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                  value={newQuiz.startFrom}
-                  onChange={(e) =>
-                    setNewQuiz((n) => ({ ...n, startFrom: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-            <div>
-              <button type="submit" className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors" disabled={loading}>
-                Create
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       <div className="mb-6">
         <div className="grid grid-cols-3 gap-4">
@@ -314,6 +268,9 @@ export default function AdminPanel() {
               onEdit={handleEditQuiz}
               onDelete={handleDeleteQuiz}
               onManage={handleManageQuiz}
+              onCopy={handleCopyTemplate}
+              onMonitor={handleOpenMonitor}
+              onReport={handleOpenReports}
             />
           </div>
           <div>
@@ -323,7 +280,10 @@ export default function AdminPanel() {
         {lastDeleted && (
           <div className="mt-2 p-3 bg-gray-100 border-l-4 border-black">
             Deleted "{lastDeleted.title}" —{" "}
-            <button className="text-black underline font-medium" onClick={handleUndo}>
+            <button
+              className="text-black underline font-medium"
+              onClick={handleUndo}
+            >
               Undo
             </button>{" "}
             (30s)

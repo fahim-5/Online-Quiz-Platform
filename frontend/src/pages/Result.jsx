@@ -247,30 +247,80 @@ export default function Result() {
   return (
     <div className="page result-page p-6">
       <div className="max-w-3xl mx-auto bg-white rounded shadow p-6">
-        <h2 className="text-3xl font-bold text-center mb-2">Quiz Completed!</h2>
-        <p className="text-center text-gray-600 mb-4">
-          {result.quiz && result.quiz.title}
-        </p>
+        <div className="flex flex-col items-center">
+          <div
+            className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${
+              pct >= 50 ? "bg-green-100" : "bg-red-100"
+            }`}
+          >
+            {pct >= 50 ? (
+              <svg
+                className="w-10 h-10 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-10 h-10 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            )}
+          </div>
 
-        <div className="text-center">
-          <div className="text-6xl font-extrabold text-red-600">{pct}%</div>
-          <div className="text-sm text-gray-500">
-            {result.score} out of {result.total} points
-          </div>
-        </div>
+          <h2 className="text-3xl font-bold text-center mb-2">
+            Quiz Completed!
+          </h2>
+          {pct < 50 && (
+            <div className="mt-1 text-sm px-3 py-1 bg-red-50 text-red-600 rounded">
+              Keep Trying!
+            </div>
+          )}
 
-        <div className="mt-6 border-t pt-4 grid grid-cols-3 gap-4 text-center text-sm text-gray-700">
-          <div>
-            <div className="text-xs text-gray-500">Time Taken</div>
-            <div className="font-semibold">{fmtTime(result.duration)}</div>
+          <p className="text-center text-gray-600 mb-4 mt-3 text-lg font-medium">
+            {result.quiz && result.quiz.title}
+          </p>
+
+          <div className="text-center w-full">
+            <div className="text-6xl font-extrabold text-red-600">{pct}%</div>
+            <div className="text-sm text-gray-500 mt-1">
+              {result.score} out of {result.total} points
+            </div>
+
+            <div className="w-full bg-gray-200 rounded-full h-3 mt-6 overflow-hidden">
+              <div className="h-3 bg-red-600" style={{ width: `${pct}%` }} />
+            </div>
           </div>
-          <div>
-            <div className="text-xs text-gray-500">Your Rank</div>
-            <div className="font-semibold">-</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Accuracy</div>
-            <div className="font-semibold">{pct}%</div>
+
+          <div className="mt-6 border-t pt-4 grid grid-cols-3 gap-4 text-center text-sm text-gray-700 w-full">
+            <div>
+              <div className="text-xs text-gray-500">Time Taken</div>
+              <div className="font-semibold">{fmtTime(result.duration)}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Your Rank</div>
+              <div className="font-semibold">{result.rank ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500">Accuracy</div>
+              <div className="font-semibold">{pct}%</div>
+            </div>
           </div>
         </div>
       </div>
