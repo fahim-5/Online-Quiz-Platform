@@ -95,7 +95,40 @@ const getQuizzes = async (req, res, next) => {
       return res.json({ success: true, quizzes });
     }
 
-    // Only return quizzes that are active and either have no visibleFrom or visibleFrom <= now
+    // If caller requests assigned quizzes for the logged-in user
+    if (req.query.assigned === "true") {
+      // require authentication for assigned filtering
+      const user = req.user || null;
+      if (!user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Not authenticated" });
+
+      // Match active quizzes visible now
+      const baseMatch = {
+        isActive: true,
+        $or: [
+          { visibleFrom: { $exists: false } },
+          { visibleFrom: null },
+          { visibleFrom: { $lte: now } },
+        ],
+      };
+
+      // For students: return quizzes that are public OR private quizzes where allowedList contains the user's identifier or email
+      const candidate = await Quiz.find({
+        ...baseMatch,
+        $or: [
+          { access: "public" },
+          {
+            access: "private",
+            allowedList: { $in: [user.identifier, user.email] },
+          },
+        ],
+      }).limit(200);
+      return res.json({ success: true, quizzes: candidate });
+    }
+
+    // Default: Only return quizzes that are active and either have no visibleFrom or visibleFrom <= now
     const quizzes = await Quiz.find({
       isActive: true,
       $or: [

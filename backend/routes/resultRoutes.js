@@ -11,6 +11,7 @@ import {
   exportLeaderboardCSV,
   questionAnalysis,
   getStudentReport,
+  updateDraft,
   exportReportPDF,
 } from "../controllers/resultController.js";
 import { protect, authorize } from "../middleware/auth.js";
@@ -67,5 +68,8 @@ router.get(
   authorize("teacher"),
   exportReportPDF,
 );
+
+// Update draft answers (autosave) - user must be authenticated and owner
+router.put("/:id", protect, updateDraft);
 
 export default router;
