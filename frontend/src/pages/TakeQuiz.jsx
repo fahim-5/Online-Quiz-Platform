@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import Timer from "../components/Timer";
@@ -11,8 +11,10 @@ export default function TakeQuiz() {
   const [quiz, setQuiz] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const saveTimer = useRef(null);
 
   useEffect(() => {
     const load = async () => {
@@ -64,8 +66,40 @@ export default function TakeQuiz() {
     }
   };
 
+  const scheduleSave = (newAnswers) => {
+    // debounce autosave by 1s
+    if (!newAnswers.__resultId) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      try {
+        const resultId = newAnswers.__resultId;
+        const payload = {
+          answers: Object.entries(newAnswers)
+            .filter(([k]) => k !== "__resultId")
+            .map(([question, answerIndex]) => ({
+              question,
+              answerIndex: Number(answerIndex),
+            })),
+        };
+        await api.put(`/results/${resultId}`, payload);
+      } catch (e) {
+        // ignore autosave errors
+      }
+    }, 1000);
+  };
+
   const handleSelect = (questionId, optionIndex) => {
-    setAnswers((a) => ({ ...a, [questionId]: optionIndex }));
+    setAnswers((a) => {
+      const next = { ...a, [questionId]: optionIndex };
+      scheduleSave(next);
+      return next;
+    });
+  };
+
+  const goTo = (idx) => {
+    if (idx < 0) idx = 0;
+    if (idx >= questions.length) idx = questions.length - 1;
+    setCurrentIndex(idx);
   };
 
   const [canStart, setCanStart] = useState(false);
@@ -96,14 +130,24 @@ export default function TakeQuiz() {
         location.state && location.state.guestName
           ? location.state.guestName
           : undefined;
-      const payload = { quiz: id };
-      if (guestName) payload.guestName = guestName;
-      const res = await api.post(`/results/start`, payload);
-      const draft = res.data.result || res.data;
-      if (draft && draft._id)
-        setAnswers((a) => ({ ...a, __resultId: draft._id }));
-      setStarted(true);
-      setExamSeconds(quiz?.timeLimit || 300);
+      // If a draft resultId was provided (from lobby join), reuse it
+      if (location.state && location.state.resultId) {
+        setAnswers((a) => ({ ...a, __resultId: location.state.resultId }));
+        setStarted(true);
+        setExamSeconds(quiz?.timeLimit || 300);
+        // set current index to 0
+        setCurrentIndex(0);
+      } else {
+        const payload = { quiz: id };
+        if (guestName) payload.guestName = guestName;
+        const res = await api.post(`/results/start`, payload);
+        const draft = res.data.result || res.data;
+        if (draft && draft._id)
+          setAnswers((a) => ({ ...a, __resultId: draft._id }));
+        setStarted(true);
+        setExamSeconds(quiz?.timeLimit || 300);
+        setCurrentIndex(0);
+      }
     } catch (err) {
       console.error("Failed to create draft result:", err);
       const msg =
@@ -183,53 +227,122 @@ export default function TakeQuiz() {
 
       {started && (
         <div className="space-y-6">
-          {questions.map((q, idx) => (
-            <div key={q._id} className="bg-white rounded-lg shadow-sm p-6">
+          {/* Top bar: question counter, timer, tentative points */}
+          <div className="bg-white rounded shadow p-4 flex items-center justify-between">
+            <div className="font-medium">
+              Q{currentIndex + 1}/{questions.length}
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-600">
+                Points:{" "}
+                {questions.reduce((acc, q) => {
+                  const ans = answers[q._id];
+                  if (
+                    typeof ans !== "undefined" &&
+                    typeof q.correctIndex !== "undefined"
+                  ) {
+                    return (
+                      acc +
+                      (Number(ans) === Number(q.correctIndex)
+                        ? q.points || 0
+                        : 0)
+                    );
+                  }
+                  return acc;
+                }, 0)}
+              </div>
+              <div>
+                <Timer initialSeconds={examSeconds} onExpire={submitAnswers} />
+              </div>
+            </div>
+          </div>
+
+          {/* Main question card */}
+          {questions[currentIndex] && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-700">
-                    Question {idx + 1}
+                    Question {currentIndex + 1}
                   </div>
                   <div className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-700">
-                    {quiz?.category || q.category || "General"}
+                    {quiz?.category ||
+                      questions[currentIndex].category ||
+                      "General"}
                   </div>
                 </div>
                 <div className="text-sm text-gray-500">
-                  {q.points || 1} points
+                  {questions[currentIndex].points || 1} points
                 </div>
               </div>
 
-              <div className="mt-3 font-semibold text-gray-800">{q.text}</div>
+              <div className="mt-3 font-semibold text-gray-800">
+                {questions[currentIndex].text}
+              </div>
 
               <div className="mt-4 space-y-3">
-                {(q.options || []).map((opt, oi) => (
+                {(questions[currentIndex].options || []).map((opt, oi) => (
                   <label
                     key={oi}
                     className="flex items-center gap-3 p-3 border rounded-lg hover:shadow-sm"
                   >
                     <input
                       type="radio"
-                      name={q._id}
-                      checked={answers[q._id] === oi}
-                      onChange={() => handleSelect(q._id, oi)}
+                      name={questions[currentIndex]._id}
+                      checked={answers[questions[currentIndex]._id] === oi}
+                      onChange={() =>
+                        handleSelect(questions[currentIndex]._id, oi)
+                      }
                       className="h-4 w-4"
                     />
                     <div className="text-gray-700">{opt.text}</div>
                   </label>
                 ))}
               </div>
-            </div>
-          ))}
 
-          <div className="mt-6 flex justify-center">
-            <button
-              onClick={submitAnswers}
-              className="px-6 py-3 bg-black text-white rounded-lg text-lg"
-            >
-              Submit Quiz (
-              {Object.keys(answers).filter((k) => k !== "__resultId").length}/
-              {questions.length} answered)
-            </button>
+              <div className="mt-4 flex justify-between">
+                <button
+                  className="px-4 py-2 bg-gray-200 rounded"
+                  onClick={() => goTo(currentIndex - 1)}
+                  disabled={currentIndex === 0}
+                >
+                  Previous
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    className="px-4 py-2 bg-gray-200 rounded"
+                    onClick={() => goTo(currentIndex + 1)}
+                    disabled={currentIndex === questions.length - 1}
+                  >
+                    Next
+                  </button>
+                  <button
+                    onClick={submitAnswers}
+                    className="px-4 py-2 bg-black text-white rounded"
+                  >
+                    Submit Quiz
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Question palette */}
+          <div className="bg-white rounded shadow p-3">
+            <div className="flex flex-wrap gap-2">
+              {questions.map((q, i) => {
+                const answered = typeof answers[q._id] !== "undefined";
+                return (
+                  <button
+                    key={q._id}
+                    onClick={() => goTo(i)}
+                    className={`w-10 h-10 rounded ${answered ? "bg-green-500 text-white" : "bg-gray-100"}`}
+                  >
+                    {i + 1}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

@@ -761,6 +761,55 @@ const exportReportPDF = async (req, res, next) => {
 // expose new functions
 export { questionAnalysis, exportReportPDF };
 
+// Update a draft result's answers (autosave). Requires authentication and ownership.
+const updateDraft = async (req, res, next) => {
+  try {
+    const userId = req.user && req.user.id ? req.user.id : null;
+    const resultId = req.params.id;
+    const { answers = [] } = req.body;
+
+    if (!resultId)
+      return res
+        .status(400)
+        .json({ success: false, message: "Result id required" });
+
+    const draft = await Result.findById(resultId);
+    if (!draft)
+      return res
+        .status(404)
+        .json({ success: false, message: "Draft not found" });
+    if (draft.status !== "in-progress")
+      return res
+        .status(400)
+        .json({ success: false, message: "Cannot update a completed result" });
+
+    // Ownership check: if draft is linked to a user, require same user
+    if (draft.user && userId && draft.user.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this draft",
+      });
+    }
+
+    // sanitize answers
+    const sanitized = Array.isArray(answers)
+      ? answers.map((a) => ({
+          question: String(a.question),
+          answerIndex: Number(a.answerIndex),
+        }))
+      : [];
+
+    draft.answers = sanitized;
+    await draft.save();
+
+    return res.json({ success: true, result: draft });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { updateDraft };
+
 const getStudentReport = async (req, res, next) => {
   try {
     const { quizId, studentId } = req.params;

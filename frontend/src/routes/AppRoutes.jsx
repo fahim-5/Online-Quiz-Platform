@@ -14,6 +14,7 @@ import QuizEditor from "../pages/QuizEditor";
 import LiveMonitor from "../pages/LiveMonitor";
 import ResultsHistory from "../pages/ResultsHistory";
 import Reports from "../pages/Reports";
+import StudentLobby from "../pages/StudentLobby";
 
 export default function AppRoutes() {
   return (
@@ -23,6 +24,7 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/join" element={<Join />} />
+      <Route path="/lobby" element={<StudentLobby />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/quiz/:id" element={<TakeQuiz />} />
       <Route path="/result" element={<Result />} />
