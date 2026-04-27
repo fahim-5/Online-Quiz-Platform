@@ -12,7 +12,13 @@ const Home = () => {
   const navigate = useNavigate();
 
   const [quizzes, setQuizzes] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showAddSubject, setShowAddSubject] = useState(false);
+  const [subjectCode, setSubjectCode] = useState("");
+  const [subjectName, setSubjectName] = useState("");
+  const [enrollKey, setEnrollKey] = useState("");
+  const [subjectError, setSubjectError] = useState(null);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -20,6 +26,15 @@ const Home = () => {
       try {
         const res = await api.get("/quizzes");
         setQuizzes(res.data.quizzes || res.data || []);
+        // if teacher, also fetch subjects (courses)
+        if (user && user.role === "teacher") {
+          try {
+            const sres = await api.get("/subjects");
+            setSubjects(sres.data.subjects || []);
+          } catch (e) {
+            setSubjects([]);
+          }
+        }
       } catch (err) {
         setQuizzes([]);
       } finally {
@@ -124,14 +139,130 @@ const Home = () => {
             >
               Manage Quizzes
             </Link>
-            <Link
-              to="/teacher"
-              className="border border-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-100 transition-colors"
+            {/* Create Quiz button removed to avoid duplication with Manage Quizzes */}
+            <button
+              onClick={() => setShowAddSubject(true)}
+              className="border border-blue-600 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors"
             >
-              Create Quiz
-            </Link>
+              Add Subject
+            </button>
           </div>
         </div>
+
+        {showAddSubject && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Add Subject</h3>
+                <button
+                  className="text-gray-600"
+                  onClick={() => {
+                    setShowAddSubject(false);
+                    setSubjectCode("");
+                    setSubjectName("");
+                    setEnrollKey("");
+                    setSubjectError(null);
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-black">
+                    Subject Name
+                  </label>
+                  <input
+                    value={subjectName}
+                    onChange={(e) => setSubjectName(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-2 py-1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-black">
+                    Subject Code
+                  </label>
+                  <input
+                    value={subjectCode}
+                    onChange={(e) => setSubjectCode(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-2 py-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black">
+                    Enroll Key (6 digits)
+                  </label>
+                  <input
+                    value={enrollKey}
+                    onChange={(e) => setEnrollKey(e.target.value)}
+                    maxLength={6}
+                    className="w-full border border-gray-300 rounded-md px-2 py-1"
+                  />
+                </div>
+
+                {subjectError && (
+                  <div className="text-red-600">{subjectError}</div>
+                )}
+
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={async () => {
+                      // validate
+                      if (!subjectName || subjectName.trim() === "") {
+                        setSubjectError("Subject name is required");
+                        return;
+                      }
+                      if (!subjectCode || subjectCode.trim() === "") {
+                        setSubjectError("Subject code is required");
+                        return;
+                      }
+                      if (!/^\d{6}$/.test(enrollKey)) {
+                        setSubjectError("Enroll key must be exactly 6 digits");
+                        return;
+                      }
+
+                      try {
+                        const payload = {
+                          name: subjectName.trim(),
+                          code: subjectCode.trim(),
+                          enrollKey: enrollKey.trim(),
+                        };
+                        await api.post("/subjects", payload);
+                        alert("Subject added");
+                        setShowAddSubject(false);
+                        setSubjectName("");
+                        setSubjectCode("");
+                        setEnrollKey("");
+                        setSubjectError(null);
+                      } catch (e) {
+                        setSubjectError(
+                          e?.response?.data?.message ||
+                            "Failed to save subject",
+                        );
+                      }
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAddSubject(false);
+                      setSubjectCode("");
+                      setEnrollKey("");
+                      setSubjectError(null);
+                    }}
+                    className="border px-4 py-2 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
@@ -161,13 +292,16 @@ const Home = () => {
             {loading ? (
               <div className="text-black">Loading...</div>
             ) : (
-              quizzes.map((q) => (
+              quizzes.slice(0, 4).map((q) => (
                 <div
                   key={q._id}
                   className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm"
                 >
                   <h4 className="font-semibold text-black">{q.title}</h4>
                   <p className="text-sm text-gray-600">{q.description}</p>
+                  <div className="text-xs text-gray-500 mt-2">
+                    Owner: {q.createdBy?.name || user.name}
+                  </div>
                   <div className="mt-2 flex gap-2">
                     <Link
                       to={`/teacher`}
@@ -182,6 +316,48 @@ const Home = () => {
                 </div>
               ))
             )}
+          </div>
+
+          <h3 className="text-xl font-semibold mt-8 mb-4 text-black">
+            Your Courses
+          </h3>
+          <div className="grid md:grid-cols-4 gap-4">
+            {loading && <div className="text-black">Loading...</div>}
+            {!loading && subjects.length === 0 && (
+              <div className="col-span-full p-6 bg-white rounded shadow">
+                No courses yet.
+              </div>
+            )}
+            {!loading &&
+              subjects
+                .filter(
+                  (s) =>
+                    String(s.createdBy?._id || s.createdBy || "") ===
+                    String(user._id),
+                )
+                .slice(0, 4)
+                .map((s) => (
+                  <div key={s._id} className="p-4 bg-white rounded shadow">
+                    <div className="text-sm text-gray-500">{s.code}</div>
+                    <div className="font-semibold text-black">{s.name}</div>
+                    <div className="text-xs text-gray-400 mt-2">
+                      Enroll key: {s.enrollKey || "—"}
+                    </div>
+                    {s.createdBy && (
+                      <div className="text-xs text-gray-500 mt-2">
+                        Owner: {s.createdBy.name || s.createdBy.identifier}
+                      </div>
+                    )}
+                    <div className="mt-3">
+                      <Link
+                        to={`/teacher/courses/${s._id}`}
+                        className="text-sm px-3 py-1 border rounded"
+                      >
+                        Manage
+                      </Link>
+                    </div>
+                  </div>
+                ))}
           </div>
         </div>
       </div>

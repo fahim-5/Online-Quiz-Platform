@@ -21,7 +21,6 @@ const UserSchema = new mongoose.Schema(
       enum: ["student", "teacher"],
       default: "student",
     },
-    avatar: String,
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true },
@@ -32,6 +31,13 @@ const QuizSchema = new mongoose.Schema({
   description: String,
   timeLimit: { type: Number, default: 0 },
   rules: { type: String },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const SubjectSchema = new mongoose.Schema({
+  name: String,
+  code: { type: String, unique: true },
+  enrollKey: String,
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -59,6 +65,7 @@ const ResultSchema = new mongoose.Schema({
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 const Quiz = mongoose.models.Quiz || mongoose.model("Quiz", QuizSchema);
+const Subject = mongoose.models.Subject || mongoose.model("Subject", SubjectSchema);
 const Question =
   mongoose.models.Question || mongoose.model("Question", QuestionSchema);
 const Result = mongoose.models.Result || mongoose.model("Result", ResultSchema);
@@ -109,17 +116,29 @@ async function seed() {
   });
 
   // Create quizzes
+  // ensure a default subject exists
+  let defaultSubject = await Subject.findOne({ code: "GEN101" });
+  if (!defaultSubject) {
+    defaultSubject = await Subject.create({
+      name: "General",
+      code: "GEN101",
+      enrollKey: "123456",
+    });
+  }
+
   const quiz1 = await Quiz.create({
     title: "Data Structures Midterm",
     description: "Midterm quiz for CSE4165",
     timeLimit: 1800,
     rules: "No external resources. 1 attempt.",
+    subject: defaultSubject._id,
   });
   const quiz2 = await Quiz.create({
     title: "Algorithms Quiz",
     description: "Weekly assessment",
     timeLimit: 900,
     rules: "Open book. 30 minutes.",
+    subject: defaultSubject._id,
   });
 
   console.log("Created quizzes:", {

@@ -7,6 +7,7 @@ import QuizCard from "../components/QuizCard";
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
   const [quizzes, setQuizzes] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [results, setResults] = useState([]);
   const navigate = useNavigate();
 
@@ -14,18 +15,36 @@ export default function Dashboard() {
     let mounted = true;
     async function load() {
       try {
+        // If teacher, request only their quizzes and include all statuses
+        const quizUrl =
+          user && user.role === "teacher"
+            ? "/quizzes?all=true&mine=true"
+            : "/quizzes";
         const [qRes, rRes] = await Promise.all([
-          api.get("/quizzes"),
+          api.get(quizUrl),
           api.get("/results"),
         ]);
         if (!mounted) return;
-        setQuizzes(qRes.data || []);
+        setQuizzes(qRes.data.quizzes || qRes.data || []);
         setResults(rRes.data || []);
+        // load subjects for teacher view
+        if (user && user.role === "teacher") {
+          try {
+            const sRes = await api.get("/subjects");
+            if (mounted) setSubjects(sRes.data.subjects || []);
+          } catch (e) {
+            // ignore
+          }
+        }
       } catch (e) {
         // Fallback: if results endpoint not available, still load quizzes
         try {
-          const qOnly = await api.get("/quizzes");
-          if (mounted) setQuizzes(qOnly.data || []);
+          const qOnly = await api.get(
+            user && user.role === "teacher"
+              ? "/quizzes?all=true&mine=true"
+              : "/quizzes",
+          );
+          if (mounted) setQuizzes(qOnly.data.quizzes || qOnly.data || []);
         } catch (err) {
           // ignore — show empty state
         }
@@ -163,21 +182,100 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-4">Available Quizzes</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {quizzes.length === 0 && (
-              <div className="col-span-full p-6 bg-white rounded shadow">
-                No quizzes available yet.
+        {user && user.role === "teacher" ? (
+          <>
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Your Quizzes</h2>
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="text-sm text-gray-600"
+                >
+                  View all
+                </button>
               </div>
-            )}
-            {quizzes.map((q) => (
-              <div key={q._id} className="">
-                <QuizCard quiz={q} onStart={() => handleStart(q)} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {quizzes.length === 0 && (
+                  <div className="col-span-full p-6 bg-white rounded shadow">
+                    No quizzes available yet.
+                  </div>
+                )}
+                {quizzes.slice(0, 4).map((q) => (
+                  <div key={q._id} className="">
+                    <QuizCard quiz={q} onStart={() => handleStart(q)} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Your Courses</h2>
+                <button
+                  onClick={() => navigate("/teacher/courses")}
+                  className="text-sm text-gray-600"
+                >
+                  View all
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {subjects.length === 0 && (
+                  <div className="col-span-full p-6 bg-white rounded shadow">
+                    No courses yet.
+                  </div>
+                )}
+                {subjects
+                  .filter(
+                    (s) =>
+                      String(s.createdBy?._id || s.createdBy || "") ===
+                      String(user._id),
+                  )
+                  .slice(0, 4)
+                  .map((s) => (
+                    <div
+                      key={s._id}
+                      className="p-4 bg-white rounded shadow flex flex-col"
+                    >
+                      <div className="text-sm text-gray-500">{s.code}</div>
+                      <div className="font-semibold text-black">{s.name}</div>
+                      <div className="text-xs text-gray-400 mt-2">
+                        Enroll key: {s.enrollKey || "—"}
+                      </div>
+                      {s.createdBy && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Owner: {s.createdBy.name || s.createdBy.identifier}
+                        </div>
+                      )}
+                      <div className="mt-4">
+                        <button
+                          onClick={() => navigate(`/teacher/courses/${s._id}`)}
+                          className="text-sm px-3 py-1 border rounded"
+                        >
+                          Manage
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </section>
+          </>
+        ) : (
+          <section>
+            <h2 className="text-xl font-semibold mb-4">Available Quizzes</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {quizzes.length === 0 && (
+                <div className="col-span-full p-6 bg-white rounded shadow">
+                  No quizzes available yet.
+                </div>
+              )}
+              {quizzes.map((q) => (
+                <div key={q._id} className="">
+                  <QuizCard quiz={q} onStart={() => handleStart(q)} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 
 const QuizSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  // Link quiz to a subject (required)
+  subject: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Subject",
+    required: true,
+  },
+  // Which teacher created this quiz
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
   description: { type: String },
   timeLimit: { type: Number, default: 0 }, // seconds
   rules: { type: String }, // human readable rules/notes

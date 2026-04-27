@@ -13,7 +13,6 @@ const UserSchema = new mongoose.Schema(
     name: String,
     identifier: String,
     role: String,
-    avatar: String,
     isActive: Boolean,
   },
   { timestamps: true },
