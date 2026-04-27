@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import api from "../services/api";
 
 export default function QuizEditor() {
   const navigate = useNavigate();
   const { id: existingId } = useParams();
+  const location = useLocation();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [subjects, setSubjects] = useState([]);
   const [quiz, setQuiz] = useState(
     existingId
       ? null
@@ -27,6 +29,21 @@ export default function QuizEditor() {
   useEffect(() => {
     if (existingId) {
       fetchQuiz(existingId);
+    }
+    // fetch available subjects for assignment
+    (async () => {
+      try {
+        const res = await api.get("/subjects");
+        setSubjects(res.data.subjects || []);
+      } catch (e) {
+        setSubjects([]);
+      }
+    })();
+    // if a subject id is provided via query param (from course page), preselect it
+    const params = new URLSearchParams(location.search);
+    const preSub = params.get("subject");
+    if (preSub && !existingId) {
+      setQuiz((q) => ({ ...q, subject: preSub }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingId]);
@@ -48,14 +65,23 @@ export default function QuizEditor() {
       setError("Title is required");
       return;
     }
+    if (!quiz || !quiz.subject) {
+      setError("Please assign a subject before creating the quiz");
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
+        subject: quiz.subject,
         title: quiz.title,
         description: quiz.description,
         timeLimit: Number(quiz.timeLimit) || 0,
-        visibleFrom: quiz.visibleFrom || undefined,
-        startFrom: quiz.startFrom || undefined,
+        visibleFrom: quiz.visibleFrom
+          ? new Date(quiz.visibleFrom).toISOString()
+          : undefined,
+        startFrom: quiz.startFrom
+          ? new Date(quiz.startFrom).toISOString()
+          : undefined,
         attemptsAllowed: quiz.attemptsAllowed || "single",
       };
       const res = await api.post("/quizzes", payload);
@@ -87,6 +113,13 @@ export default function QuizEditor() {
                 .map((s) => s.trim())
                 .filter(Boolean)
             : [],
+        // include scheduling updates when saving settings
+        visibleFrom: quiz.visibleFrom
+          ? new Date(quiz.visibleFrom).toISOString()
+          : undefined,
+        startFrom: quiz.startFrom
+          ? new Date(quiz.startFrom).toISOString()
+          : undefined,
       };
       const res = await api.put(`/quizzes/${quiz._id}`, payload);
       setQuiz(res.data.quiz);
@@ -185,6 +218,25 @@ export default function QuizEditor() {
             </div>
             <div>
               <label className="block text-sm font-medium text-black">
+                Subject
+              </label>
+              <select
+                value={quiz?.subject || ""}
+                onChange={(e) =>
+                  setQuiz((q) => ({ ...q, subject: e.target.value }))
+                }
+                className="w-full border border-gray-300 rounded-md px-2 py-1"
+              >
+                <option value="">Select subject</option>
+                {subjects.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.name} — {s.code}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-black">
                 Description
               </label>
               <textarea
@@ -195,19 +247,7 @@ export default function QuizEditor() {
                 className="w-full border border-gray-300 rounded-md px-2 py-1"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-black">
-                  Subject
-                </label>
-                <input
-                  value={quiz?.subject || ""}
-                  onChange={(e) =>
-                    setQuiz((q) => ({ ...q, subject: e.target.value }))
-                  }
-                  className="w-full border border-gray-300 rounded-md px-2 py-1"
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-black">
                   Grade
@@ -232,6 +272,45 @@ export default function QuizEditor() {
                       ...q,
                       timeLimit: Number(e.target.value),
                     }))
+                  }
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Visible From (when students can see the quiz)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={
+                    quiz?.visibleFrom
+                      ? new Date(quiz.visibleFrom).toISOString().slice(0, 16)
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setQuiz((q) => ({
+                      ...q,
+                      visibleFrom: e.target.value || "",
+                    }))
+                  }
+                  className="w-full border border-gray-300 rounded-md px-2 py-1"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-black">
+                  Start From (when students may start the quiz)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={
+                    quiz?.startFrom
+                      ? new Date(quiz.startFrom).toISOString().slice(0, 16)
+                      : ""
+                  }
+                  onChange={(e) =>
+                    setQuiz((q) => ({ ...q, startFrom: e.target.value || "" }))
                   }
                   className="w-full border border-gray-300 rounded-md px-2 py-1"
                 />

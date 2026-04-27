@@ -205,12 +205,6 @@ export default function AdminPanel() {
             Refresh
           </button>
           <button
-            className="bg-black text-white px-3 py-1 rounded-md hover:bg-gray-800 transition-colors"
-            onClick={() => navigate("/teacher/create")}
-          >
-            Create Quiz
-          </button>
-          <button
             className="text-sm px-3 py-1 border border-gray-200 rounded-md hover:bg-gray-50"
             onClick={() => logout && logout()}
           >
@@ -221,16 +215,6 @@ export default function AdminPanel() {
 
       {/* Quick actions */}
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <button
-          onClick={() => navigate("/teacher/create")}
-          className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:shadow-sm"
-        >
-          <span className="text-2xl">➕</span>
-          <div className="text-left">
-            <div className="font-semibold">Create New Quiz</div>
-            <div className="text-sm text-gray-600">Start a quiz quickly</div>
-          </div>
-        </button>
         <button
           onClick={() => navigate("/reports")}
           className="flex items-center justify-center gap-3 p-4 border border-gray-200 rounded-lg hover:shadow-sm"

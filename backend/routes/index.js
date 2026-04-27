@@ -3,6 +3,7 @@ import authRoutes from "./authRoutes.js";
 import userRoutes from "./userRoutes.js";
 import postRoutes from "./postRoutes.js";
 import quizRoutes from "./quizRoutes.js";
+import subjectRoutes from "./subjectRoutes.js";
 import questionRoutes from "./questionRoutes.js";
 import resultRoutes from "./resultRoutes.js";
 
@@ -12,6 +13,7 @@ router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 router.use("/posts", postRoutes);
 router.use("/quizzes", quizRoutes);
+router.use("/subjects", subjectRoutes);
 router.use("/questions", questionRoutes);
 router.use("/results", resultRoutes);
 

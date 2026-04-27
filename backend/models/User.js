@@ -39,10 +39,6 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, "Institution name cannot be more than 100 characters"],
     },
-    avatar: {
-      type: String,
-      default: "default-avatar.jpg",
-    },
     isActive: {
       type: Boolean,
       default: true,

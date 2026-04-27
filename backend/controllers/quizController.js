@@ -1,11 +1,40 @@
 import Quiz from "../models/Quiz.js";
+import Subject from "../models/Subject.js";
+import User from "../models/User.js";
 import Question from "../models/Question.js";
 
 const createQuiz = async (req, res, next) => {
   try {
+    // if a specific subject id is provided, return quizzes for that subject
+    if (typeof req.query.subject === "string" && req.query.subject.trim()) {
+      const subjId = String(req.query.subject).trim();
+      const filter = {};
+      if (req.query.all === "true") {
+        filter.subject = subjId;
+        const quizzes = await Quiz.find(filter)
+          .limit(500)
+          .populate("createdBy", "name identifier");
+        return res.json({ success: true, quizzes });
+      }
+      // default: only active & visible quizzes for this subject
+      const now = new Date();
+      const quizzes = await Quiz.find({
+        subject: subjId,
+        isActive: true,
+        $or: [
+          { visibleFrom: { $exists: false } },
+          { visibleFrom: null },
+          { visibleFrom: { $lte: now } },
+        ],
+      })
+        .limit(200)
+        .populate("createdBy", "name identifier");
+      return res.json({ success: true, quizzes });
+    }
     const {
       title,
       description,
+      subject,
       timeLimit,
       rules,
       visibleFrom,
@@ -25,6 +54,8 @@ const createQuiz = async (req, res, next) => {
     }
 
     const payload = {
+      // subject must be provided and valid
+      subject: subject,
       title: title.trim(),
       description: description ? String(description).trim() : "",
       timeLimit: Number(timeLimit) || 0,
@@ -45,6 +76,24 @@ const createQuiz = async (req, res, next) => {
               .filter(Boolean)
           : [],
     };
+
+    // verify subject exists
+    if (!payload.subject) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Subject id is required" });
+    }
+    const subjDoc = await Subject.findById(String(payload.subject));
+    if (!subjDoc) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Subject not found" });
+    }
+
+    // attach creator if available
+    if (req.user && req.user.id) {
+      payload.createdBy = req.user.id;
+    }
 
     // generate a 6-digit join code if not provided
     if (!joinCode) {
@@ -89,9 +138,101 @@ const getQuizzes = async (req, res, next) => {
   try {
     // By default return active quizzes only and only those visible now.
     // Teachers/admins can request all via ?all=true.
+    // Support server-side search via ?search=... which matches quiz title or subject code.
     const now = new Date();
+    const search =
+      typeof req.query.search === "string" && req.query.search.trim()
+        ? String(req.query.search).trim()
+        : null;
+
+    // If a specific subject id is provided, return quizzes for that subject.
+    if (typeof req.query.subject === "string" && req.query.subject.trim()) {
+      const subjId = String(req.query.subject).trim();
+      // If caller wants all quizzes for this subject (e.g., teacher viewing their course)
+      if (req.query.all === "true") {
+        const filter = { subject: subjId };
+        if (req.query.mine === "true") {
+          if (!req.user)
+            return res
+              .status(401)
+              .json({ success: false, message: "Not authenticated" });
+          filter.createdBy = req.user.id;
+        }
+        const quizzes = await Quiz.find(filter)
+          .limit(500)
+          .populate("createdBy", "name identifier");
+        return res.json({ success: true, quizzes });
+      }
+
+      // Default: only active & visible quizzes for this subject
+      const match = {
+        subject: subjId,
+        isActive: true,
+        $or: [
+          { visibleFrom: { $exists: false } },
+          { visibleFrom: null },
+          { visibleFrom: { $lte: now } },
+        ],
+      };
+      if (req.query.mine === "true") {
+        if (!req.user)
+          return res
+            .status(401)
+            .json({ success: false, message: "Not authenticated" });
+        match.createdBy = req.user.id;
+      }
+      const quizzes = await Quiz.find(match)
+        .limit(200)
+        .populate("createdBy", "name identifier");
+      return res.json({ success: true, quizzes });
+    }
     if (req.query.all === "true") {
-      const quizzes = await Quiz.find({}).limit(500);
+      if (search) {
+        // search across title or subject code
+        const regex = new RegExp(
+          search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+          "i",
+        );
+        // find matching subjects by code
+        const subjDocs = await Subject.find({ code: { $regex: regex } }).select(
+          "_id",
+        );
+        const subjIds = subjDocs.map((s) => s._id);
+        // allow searching by teacher name as well
+        const userDocs = await User.find({ name: { $regex: regex } }).select(
+          "_id",
+        );
+        const userIds = userDocs.map((u) => u._id);
+        const base = {
+          $or: [
+            { title: { $regex: regex } },
+            { subject: { $in: subjIds } },
+            { createdBy: { $in: userIds } },
+          ],
+        };
+        if (req.query.mine === "true") {
+          if (!req.user)
+            return res
+              .status(401)
+              .json({ success: false, message: "Not authenticated" });
+          base.createdBy = req.user.id;
+        }
+        const quizzes = await Quiz.find(base)
+          .limit(500)
+          .populate("createdBy", "name identifier");
+        return res.json({ success: true, quizzes });
+      }
+      const base = {};
+      if (req.query.mine === "true") {
+        if (!req.user)
+          return res
+            .status(401)
+            .json({ success: false, message: "Not authenticated" });
+        base.createdBy = req.user.id;
+      }
+      const quizzes = await Quiz.find(base)
+        .limit(500)
+        .populate("createdBy", "name identifier");
       return res.json({ success: true, quizzes });
     }
 
@@ -128,15 +269,68 @@ const getQuizzes = async (req, res, next) => {
       return res.json({ success: true, quizzes: candidate });
     }
 
+    // If a search query was provided, search active/visible quizzes by title or subject code
+    if (search) {
+      const regex = new RegExp(
+        search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        "i",
+      );
+      const subjDocs = await Subject.find({ code: { $regex: regex } }).select(
+        "_id",
+      );
+      const subjIds = subjDocs.map((s) => s._id);
+      // support searching by teacher name
+      const userDocs = await User.find({ name: { $regex: regex } }).select(
+        "_id",
+      );
+      const userIds = userDocs.map((u) => u._id);
+      const match = {
+        isActive: true,
+        $or: [
+          { visibleFrom: { $exists: false } },
+          { visibleFrom: null },
+          { visibleFrom: { $lte: now } },
+        ],
+      };
+      if (req.query.mine === "true") {
+        if (!req.user)
+          return res
+            .status(401)
+            .json({ success: false, message: "Not authenticated" });
+        match.createdBy = req.user.id;
+      }
+      const quizzes = await Quiz.find({
+        ...match,
+        $or: [
+          { title: { $regex: regex } },
+          { subject: { $in: subjIds } },
+          { createdBy: { $in: userIds } },
+        ],
+      })
+        .limit(50)
+        .populate("createdBy", "name identifier");
+      return res.json({ success: true, quizzes });
+    }
+
     // Default: Only return quizzes that are active and either have no visibleFrom or visibleFrom <= now
-    const quizzes = await Quiz.find({
+    const baseMatch = {
       isActive: true,
       $or: [
         { visibleFrom: { $exists: false } },
         { visibleFrom: null },
         { visibleFrom: { $lte: now } },
       ],
-    }).limit(50);
+    };
+    if (req.query.mine === "true") {
+      if (!req.user)
+        return res
+          .status(401)
+          .json({ success: false, message: "Not authenticated" });
+      baseMatch.createdBy = req.user.id;
+    }
+    const quizzes = await Quiz.find(baseMatch)
+      .limit(50)
+      .populate("createdBy", "name identifier");
     res.json({ success: true, quizzes });
   } catch (err) {
     next(err);
@@ -145,7 +339,10 @@ const getQuizzes = async (req, res, next) => {
 
 const getQuiz = async (req, res, next) => {
   try {
-    const quiz = await Quiz.findById(req.params.id);
+    const quiz = await Quiz.findById(req.params.id).populate(
+      "createdBy",
+      "name identifier",
+    );
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
     res.json({ success: true, quiz });
   } catch (err) {
@@ -156,11 +353,18 @@ const getQuiz = async (req, res, next) => {
 const updateQuiz = async (req, res, next) => {
   try {
     const updates = req.body || {};
-    const quiz = await Quiz.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    // ownership check: only creator may update (teachers only)
+    if (
+      req.user &&
+      req.user.id &&
+      String(quiz.createdBy) !== String(req.user.id)
+    ) {
+      return res.status(403).json({ message: "Forbidden: not the owner" });
+    }
+    Object.assign(quiz, updates);
+    await quiz.save();
     res.json({ success: true, quiz });
   } catch (err) {
     next(err);
@@ -172,6 +376,13 @@ const deleteQuiz = async (req, res, next) => {
     // Soft-delete: mark inactive and record who deleted and when
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    if (
+      req.user &&
+      req.user.id &&
+      String(quiz.createdBy) !== String(req.user.id)
+    ) {
+      return res.status(403).json({ message: "Forbidden: not the owner" });
+    }
     quiz.isActive = false;
     quiz.deletedAt = new Date();
     quiz.deletedBy = req.user ? req.user.id : undefined;
@@ -186,6 +397,13 @@ const undoQuiz = async (req, res, next) => {
   try {
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    if (
+      req.user &&
+      req.user.id &&
+      String(quiz.createdBy) !== String(req.user.id)
+    ) {
+      return res.status(403).json({ message: "Forbidden: not the owner" });
+    }
     if (quiz.isActive)
       return res.status(400).json({ message: "Quiz is already active" });
     quiz.isActive = true;
@@ -202,10 +420,19 @@ const duplicateQuiz = async (req, res, next) => {
   try {
     const orig = await Quiz.findById(req.params.id);
     if (!orig) return res.status(404).json({ message: "Quiz not found" });
+    // Only owner may duplicate (or allow creator to be set to duplicator)
+    if (
+      req.user &&
+      req.user.id &&
+      String(orig.createdBy) !== String(req.user.id)
+    ) {
+      return res.status(403).json({ message: "Forbidden: not the owner" });
+    }
 
     // clone quiz fields
     const payload = {
       title: `${orig.title} (copy)`,
+      subject: orig.subject,
       description: orig.description,
       timeLimit: orig.timeLimit,
       rules: orig.rules,
@@ -230,6 +457,8 @@ const duplicateQuiz = async (req, res, next) => {
     }
     payload.joinCode = code;
 
+    // set creator of duplicate to the requesting user when available
+    if (req.user && req.user.id) payload.createdBy = req.user.id;
     const created = await Quiz.create(payload);
 
     // duplicate questions
