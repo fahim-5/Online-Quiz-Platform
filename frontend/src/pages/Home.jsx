@@ -29,7 +29,7 @@ const Home = () => {
         // if teacher, also fetch subjects (courses)
         if (user && user.role === "teacher") {
           try {
-            const sres = await api.get("/subjects");
+            const sres = await api.get("/subjects?mine=true");
             setSubjects(sres.data.subjects || []);
           } catch (e) {
             setSubjects([]);
