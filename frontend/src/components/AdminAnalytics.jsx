@@ -16,12 +16,47 @@ export default function TeacherAnalytics() {
     const load = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/results/teacher/participation");
-        setParticipation(res.data.participation || []);
-        if (res.data.participation && res.data.participation.length > 0) {
-          const q = res.data.participation[0];
-          setSelectedQuiz(q.quizId);
-        }
+        // Fetch participation summary and teacher quizzes so we can show
+        // all teacher quizzes in the select (even those with zero attempts).
+        const [pRes, qRes] = await Promise.allSettled([
+          api.get("/results/teacher/participation"),
+          // Request all quizzes; we'll merge and filter locally if needed
+          api.get("/quizzes?all=true"),
+        ]);
+
+        const part = pRes.status === "fulfilled" ? pRes.value.data.participation || [] : [];
+        const quizzes =
+          qRes.status === "fulfilled"
+            ? (Array.isArray(qRes.value.data) ? qRes.value.data : qRes.value.data.quizzes || [])
+            : [];
+
+        // Build a map of participation by quizId
+        const partMap = {};
+        part.forEach((p) => {
+          partMap[String(p.quizId)] = p;
+        });
+
+        // Combine quizzes and participation into a single list for the select
+        const combined = quizzes.map((q) => {
+          const id = q._id || q.id;
+          const p = partMap[String(id)];
+          return {
+            quizId: id,
+            title: q.title || q.name || (p && p.title) || id,
+            attempts: p ? p.attempts : 0,
+          };
+        });
+
+        // Also include any participation entries for quizzes not returned in quizzes list
+        part.forEach((p) => {
+          const exists = combined.find((c) => String(c.quizId) === String(p.quizId));
+          if (!exists) {
+            combined.push({ quizId: p.quizId, title: p.title || p.quizId, attempts: p.attempts });
+          }
+        });
+
+        setParticipation(combined);
+        if (combined.length > 0) setSelectedQuiz(combined[0].quizId);
       } catch (err) {
         console.error(err);
       } finally {
@@ -56,7 +91,8 @@ export default function TeacherAnalytics() {
       }
     };
     loadQuiz();
-  }, [selectedQuiz]);
+  // reload when selected quiz or filters/pagination change
+  }, [selectedQuiz, page, limit, startDate, endDate]);
 
   if (loading) return <div className="text-black">Loading analytics...</div>;
 
