@@ -26,7 +26,10 @@ export default function Courses() {
     setLoading(true);
     setError(null);
     try {
-      const url = onlyMine ? "/subjects?mine=true" : "/subjects";
+      const url =
+        onlyMine && user && user._id
+          ? `/subjects?teacherId=${user._id}`
+          : "/subjects";
       const res = await api.get(url);
       const list = (res && res.data && res.data.subjects) || [];
       setSubjects(list);

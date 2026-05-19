@@ -21,7 +21,7 @@ const createSubject = async (req, res, next) => {
       name: String(name).trim(),
       code: String(code).trim(),
       enrollKey: String(enrollKey).trim(),
-      createdBy: req.user ? req.user.id : undefined,
+      createdBy: req.user ? req.user._id : undefined,
     };
 
     const subject = await Subject.create(payload);
@@ -38,6 +38,7 @@ const getSubjects = async (req, res, next) => {
         ? String(req.query.search).trim()
         : null;
     const mine = req.query.mine === "true" || req.query.mine === "1";
+    const teacherId = req.query.teacherId || null;
     if (search) {
       const regex = new RegExp(
         search.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&"),
@@ -62,9 +63,22 @@ const getSubjects = async (req, res, next) => {
     }
 
     // If requesting only the current teacher's subjects and an authenticated
-    // user is present, filter by createdBy. Otherwise return all subjects.
+    // user is present, filter by createdBy. Or, if a teacherId query param
+    // is provided, filter by that id. Otherwise return all subjects.
     const query = {};
-    if (mine && req.user && req.user.role === "teacher") {
+    if (teacherId) {
+      // return subjects either created by the teacher or where the teacher
+      // appears in common enrollment/member arrays
+      query.$or = [
+        { createdBy: teacherId },
+        { participants: teacherId },
+        { students: teacherId },
+        { enrolled: teacherId },
+        { enrolledUsers: teacherId },
+        { members: teacherId },
+        { users: teacherId },
+      ];
+    } else if (mine && req.user && req.user.role === "teacher") {
       query.createdBy = req.user._id;
     }
 

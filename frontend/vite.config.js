@@ -5,6 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    open: false
+    open: false,
+    allowedHosts: ['sanitizer-removing-portly.ngrok-free.dev']
   }
 })
+
+
+
+    

@@ -26,25 +26,29 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!form.email || !form.password)
-      return setError("Email and password are required");
+    const requiredFields = [
+      "name",
+      "id",
+      "email",
+      "password",
+      "confirmPassword",
+      "institution",
+    ];
+    const missing = requiredFields.filter(
+      (k) => !(form[k] && form[k].toString().trim()),
+    );
+    if (missing.length) return setError("Please fill in all required fields");
     if (form.password !== form.confirmPassword)
       return setError("Passwords do not match");
     setLoading(true);
     try {
-      // If ID not provided, use email as identifier to satisfy backend requirement
-      const identifier =
-        form.id && form.id.trim()
-          ? form.id.trim()
-          : form.email.trim().toLowerCase();
-
       await api.post("/auth/register", {
-        name: form.name,
-        id: identifier,
-        email: form.email,
+        name: form.name.trim(),
+        id: form.id.trim(),
+        email: form.email.trim().toLowerCase(),
         password: form.password,
         role: form.role,
-        institution: form.institution || undefined,
+        institution: form.institution.trim(),
       });
       // Show success modal then redirect to login on OK
       setShowSuccess(true);
@@ -71,19 +75,21 @@ export default function Register() {
               value={form.name}
               onChange={handleChange}
               placeholder="Full name"
+              required
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </label>
 
           <label className="block">
             <span className="text-sm text-gray-700 font-medium">
-              Institution (optional)
+              Institution
             </span>
             <input
               name="institution"
               value={form.institution}
               onChange={handleChange}
-              placeholder="Institution name (for teachers)"
+              placeholder="Institution name"
+              required
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </label>
@@ -96,6 +102,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder="you@example.com"
               type="email"
+              required
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </label>
@@ -107,6 +114,7 @@ export default function Register() {
               value={form.id}
               onChange={handleChange}
               placeholder="Enter your ID"
+              required
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </label>
@@ -119,6 +127,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder="Enter password"
               type="password"
+              required
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </label>
@@ -133,6 +142,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder="Retype password"
               type="password"
+              required
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </label>
@@ -146,6 +156,7 @@ export default function Register() {
                 value="student"
                 checked={form.role === "student"}
                 onChange={handleChange}
+                required
                 className="accent-black focus:ring-black"
               />
               <span className="text-sm text-black">Student</span>
